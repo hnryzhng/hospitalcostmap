@@ -16,9 +16,12 @@ app.get('/', function(request, response) {
 // route: index request user input diagnosis 
 app.get('/ajaxroute', function(req, res){
 	// input: user diagnosis string
+	// var usericd = req......
 
 	// TASK: port wrangleData() to Python, and then wrangle inpatient2016 before hand
 	// output: list of relevant hospital records
+	hospitalRecordsList = icd2hosp.convert(usericd);
+	console.log('app.js hospitalRecordsList: ', hospitalRecordsList);
 
 });
 
