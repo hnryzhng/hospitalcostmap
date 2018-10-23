@@ -40,12 +40,14 @@ icd2hosp.convert(usericd) {
 					};
 
 				} else {
-					console.log("your diagnosis ", usericd, " could not be found");
+					
+					// TASK: throw ERROR?
+					console.log("your diagnosis ", usericd, " could not be found: no hospital records");
 					return null;
 				};
 
 			} else {
-				console.log("your diagnosis ", usericd, " could not be found");
+				console.log("your diagnosis ", usericd, " could not be found: no matching drg name");
 				return null;
 			};
 		};
@@ -53,7 +55,7 @@ icd2hosp.convert(usericd) {
 		return hospitalRecordsList;
 
 	} else {
-		console.log("your diagnosis ", usericd, " could not be found");
+		console.log("your diagnosis ", usericd, " could not be found: no matching drg code");
 		return null;
 	}
 
