@@ -35,10 +35,9 @@ describe('icd2hosp()', function() {
 		});
 
 		```
-		it('returns drg codes from icd2drgcode.txt')	// put into separate function
+		it('icd has successfully been sent through ajax')
 
-		it('returns drg names from drgCode2Name.txt')	// put into separate function
-
+		
 		it('returns list of hospital record objects given partially matching icd input', function() {
 			var inputIcd = // partially matching icd
 			var expectedOutput = // 
