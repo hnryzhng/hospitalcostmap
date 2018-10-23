@@ -19,7 +19,8 @@ var icd2hosp = require('/icd2hosp.js');
 describe('icd2hosp()', function() {
 	
 	// TASK: perhaps describe test env should be separated based on fully matching or partially matching icd input
-	
+	// use beforeEach, if not particularly testing partially matching icd inputs 
+
 	describe('when user icd works'. function() {
 
 		it('returns list of hospital record objects', function (){
