@@ -7,6 +7,7 @@
 var icd2drgcode = require('/static/icd2drgCode.txt');	// drg codes from cms website
 var drgcode2name = require('/static/drgCode2Name.txt');	// drg names from inpatient csv
 var drg2hospitals = require('/static/drg2hospitals.txt');	// drg names, hospitals from inpatient csv
+// var geocodedAddresses = require('/static/geocoded_addresses.txt');	// geocoded hospital addresses
 
 var icd2hosp = function() {};	// initialize object
 
