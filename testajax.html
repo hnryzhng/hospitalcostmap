@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> 			
+
+		<style>
+			#submitButton {
+				background-color: #4CAF50; /* Green */
+				border: none;
+				color: white;
+				padding: 15px 32px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 16px;				
+			};
+
+
+			#text-box {
+				width: 200px;
+			};
+
+			#display {
+				height: 1000px;
+				width: 1000px;
+				border: 5px solid black;
+				margin-left: 300px;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+
+		<div id='inputContainer'>
+			<a href=#>
+				<div id="submitButton"></div>
+			</a>
+
+
+			<input type="text" id="text-box" name="ajaxtext" placeholder="ajaxtext">
+		</div>
+
+		<div id="display"></div>
+
+		<script>
+
+			function grabResponse() {
+				// submit through ajax, and return response text
+
+				// express js + ajax		
+				// https://medium.freecodecamp.org/getting-off-the-ground-with-expressjs-89ada7ef4e59
+
+				// good example: https://gist.github.com/diorahman/1520485
+				
+				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
+
+				var textInput = $('#text-box').val();
+
+				$('#display').append('<p> grabResponse() text input: '+JSON.stringify(textInput)+'</p>');
+
+				function ajaxSuccess(resdata){
+					$('#display').append('<p>gb ajax success</p>');
+
+
+					$('#display').append('<p>ajax response data:'+JSON.stringify(resdata)+'</p>');
+
+					//var hospitalRecordsList = JSON.parse(hospitalRecordsList);	// turn incoming data string into json object
+
+					//$('#display').append('<p>ajax hospitalRecordsList type:'+(typeof hospitalRecordsList)+'</p>');
+
+				};
+
+				function ajaxFail(error){
+					$('#display').append('<p>gb ajax failure </p>');
+					$('#display').append('<p>ajax error: '+JSON.stringify(error)+'</p>');
+					//console.log("ajax fail:", error);
+
+				};
+				/*
+
+				*/
+				$.ajax({
+					type: "POST",
+					url: "http://localhost:3000/ajaxroute",	// root+rel path or port num (8080,3000?)+rel path
+					data: JSON.stringify(textInput),	// use module for security
+					success: ajaxSuccess, 
+					error: ajaxFail
+				});
+			};
+
+			function eventListener() {
+
+				$('#submitButton').on('click', function() {
+					$('#display').append('<p>event main works</p>');
+					grabResponse();
+
+				});
+			};
+
+			function main() {
+				// event: on click of submitButton, send text in text-box to backend through ajax
+
+				//grabResponse();
+
+				eventListener();
+
+			};
+
+
+			// CALL FUNCTIONS
+			$(document).ready(main());
+
+		</script>
+
+
+	</body>
+
+
+
+
+
+</html>

@@ -3,28 +3,39 @@
 // load packages
 var http = require('http');
 var express = require('express');
-var icd2hosp = require('/icd2hosp.js');
+var path = require('path');
+var bodyParser = require('body-parser');	// for parsing body of POST request
+//var icd2hosp = require('../icd2hosp.js');
 
 // initialize app object 
 var app = express();
 
-// route to home page
-app.get('/', function(request, response) {
-	// serve index.html
+// parses body for post request processing
+app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-form-urlencoded
+app.use(bodyParser.json());	// parse application/json
+
+// routes
+app.get('/', function(req, res) {
+	res.send('init success!')
 });
 
-// route: index request user input diagnosis 
-app.get('/ajaxroute', function(req, res){
-	// input: user diagnosis string
-	// var usericd = req......
+app.get('/testajax.html', function(req, res){
+	res.sendFile(path.join(__dirname + '/testajax.html'));
+});
 
-	// TASK: port wrangleData() to Python, and then wrangle inpatient2016 before hand
-	// output: list of relevant hospital records
-	hospitalRecordsList = icd2hosp.convert(usericd);
-	console.log('app.js hospitalRecordsList: ', hospitalRecordsList);
+// test ajax route
+app.post('/ajaxroute', function(req, res){
+	// mock hospital records list
+	// problem: cannot grab list of arrays, just json object (also restructure when outputting to index.html?)
+	var hospitalRecordsList = [{'hospital':'hos1', 'address':'nunya'},{'hospital':'hos2', 'address':''}];	
+	var inputIcd = req.body;	// data sent from form with AJAX 
+	console.log('incoming request inputIcd:', inputIcd);	// problem: how to just extract text from parsed request body
+
+	res.json(hospitalRecordsList);	// response data sent directly as json
 
 });
 
 // initialize server instance
-var portNum = // what is the port number? 8080?
-http.createServer(app).listen(portNum);
+// http://localhost:portNum
+var portNum = 3000;
+app.listen(portNum, function() {console.log('Example app listening on port', portNum)});	
