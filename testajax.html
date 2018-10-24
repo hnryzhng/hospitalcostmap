@@ -65,7 +65,12 @@
 					$('#display').append('<p>gb ajax success</p>');
 
 
-					$('#display').append('<p>ajax response data:'+resdata.toString()+'</p>');
+
+					$('#display').append('<p>ajax response data:'+JSON.stringify(resdata)+'</p>');
+					for (var i=0; i<resdata.length; i++) {
+						$('#display').append('<p>ajax response record:'+JSON.stringify(resdata[i])+'</p>');
+					};
+
 
 					//var hospitalRecordsList = JSON.parse(hospitalRecordsList);	// turn incoming data string into json object
 

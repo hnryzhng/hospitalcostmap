@@ -5,7 +5,8 @@ var http = require('http');
 var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');	// for parsing body of POST request
-//var icd2hosp = require('../icd2hosp.js');
+
+var icd2hosp = require(path.join(__dirname + '/icd2hosp.js'));
 
 // initialize app object 
 var app = express();
@@ -14,16 +15,29 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-form-urlencoded
 app.use(bodyParser.json());	// parse application/json
 
-// routes
+// route: serve index.html
 app.get('/', function(req, res) {
-	res.send('init success!')
+	res.sendFile(path.join(__dirname + '/index.html'));
 });
 
+// route: 
+app.get('/get_hospital_records', function(req, res){
+
+	var requestQueryObj = req.query.toString();	
+	var icdInput = Object.keys(requestQueryObj);
+
+
+	// var hospitalRecordsList = icd2hosp.convert(icdInput);
+	// res.send(hospitalRecordsList);
+
+});
+
+
+// route: serve testajax.html
 app.get('/testajax.html', function(req, res){
 	res.sendFile(path.join(__dirname + '/testajax.html'));
 });
-
-// test ajax route
+// route: test ajax request
 app.get('/ajaxroute', function(req, res){
 
 	// problem: cannot grab list of arrays, just json object (also restructure when outputting to index.html?)
@@ -39,8 +53,9 @@ app.get('/ajaxroute', function(req, res){
 	//console.log('express request query type:', typeof requestQuery);
 	//console.log('express request query keys:', requestQueryKeys.toString());
 	var responseStr = 'hi there';
+	var responseList = [{'hospital':'hos1', 'address':'nunya'},{'hospital':'hos2', 'address':''}];
 
-	res.send(responseStr);
+	res.send(responseList);
 });
 
 // initialize server instance
