@@ -24,15 +24,23 @@ app.get('/testajax.html', function(req, res){
 });
 
 // test ajax route
-app.post('/ajaxroute', function(req, res){
-	// mock hospital records list
+app.get('/ajaxroute', function(req, res){
+
 	// problem: cannot grab list of arrays, just json object (also restructure when outputting to index.html?)
-	var hospitalRecordsList = [{'hospital':'hos1', 'address':'nunya'},{'hospital':'hos2', 'address':''}];	
-	var inputIcd = req.body;	// data sent from form with AJAX 
-	console.log('incoming request inputIcd:', inputIcd);	// problem: how to just extract text from parsed request body
+	// var hospitalRecordsList = [{'hospital':'hos1', 'address':'nunya'},{'hospital':'hos2', 'address':''}];	
+	// var inputIcd = req.body['ajaxtext'];	// data sent from form with AJAX 
+	// console.log('incoming request inputIcd:', inputIcd);	// problem: how to just extract text from parsed request body
 
-	res.json(hospitalRecordsList);	// response data sent directly as json
+	var requestQuery = req.query;
+	var requestQueryKeys = Object.keys(requestQuery);
 
+	//console.log('REQUEST DATA:', req);
+	//console.log('express request query:', requestQuery);
+	//console.log('express request query type:', typeof requestQuery);
+	//console.log('express request query keys:', requestQueryKeys.toString());
+	var responseStr = 'hi there';
+
+	res.send(responseStr);
 });
 
 // initialize server instance

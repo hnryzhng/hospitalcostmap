@@ -36,12 +36,10 @@
 	<body>
 
 		<div id='inputContainer'>
-			<a href=#>
-				<div id="submitButton"></div>
-			</a>
 
+			<input type="text" id="text-box" name="ajaxtext">
+			<div id="submitButton">
 
-			<input type="text" id="text-box" name="ajaxtext" placeholder="ajaxtext">
 		</div>
 
 		<div id="display"></div>
@@ -59,14 +57,15 @@
 				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
 
 				var textInput = $('#text-box').val();
+				//textInput = textInput.replace(/\"/g, "");	// rid of double quotations
 
-				$('#display').append('<p> grabResponse() text input: '+JSON.stringify(textInput)+'</p>');
+				$('#display').append('<p> grabResponse() text input: '+(textInput.toString())+'</p>');
 
 				function ajaxSuccess(resdata){
 					$('#display').append('<p>gb ajax success</p>');
 
 
-					$('#display').append('<p>ajax response data:'+JSON.stringify(resdata)+'</p>');
+					$('#display').append('<p>ajax response data:'+resdata.toString()+'</p>');
 
 					//var hospitalRecordsList = JSON.parse(hospitalRecordsList);	// turn incoming data string into json object
 
@@ -84,7 +83,7 @@
 
 				*/
 				$.ajax({
-					type: "POST",
+					type: "GET",
 					url: "http://localhost:3000/ajaxroute",	// root+rel path or port num (8080,3000?)+rel path
 					data: JSON.stringify(textInput),	// use module for security
 					success: ajaxSuccess, 
