@@ -56,7 +56,7 @@
 				
 				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
 
-				var textInput = $('#text-box').val();
+				var textInput = "Transplantation of Heart, Allogeneic, Open Approach";	//$('#text-box').val();
 
 				$('#display').append('<p> grabResponse() text input: '+(textInput.toString())+'</p>');
 
@@ -86,13 +86,14 @@
 				/*
 
 				*/
+				var targetUrl = "http://localhost:3000/get_hospital_records/"+textInput;
 				$.ajax({
 					type: "GET",
-					url: "http://localhost:3000/ajaxroute",	// root+rel path or port num (8080,3000?)+rel path
+					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
 					data: JSON.stringify(textInput),	// use module for security
 					success: ajaxSuccess, 
 					error: ajaxFail
-				});
+				});	
 			};
 
 			function eventListener() {

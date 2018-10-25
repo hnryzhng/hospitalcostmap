@@ -4,14 +4,14 @@
 // output: list of matching hospital records
 
 // load data maps
-var icd2drgcode = require('/static/icd2drgCode.txt');	// drg codes from cms website
-var drgcode2name = require('/static/drgCode2Name.txt');	// drg names from inpatient csv
-var drg2hospitals = require('/static/drg2hospitals.txt');	// drg names, hospitals from inpatient csv
+var path = require('path');
+var fs = require('fs');
 
-var icd2hosp = function() {};	// initialize object
+var icd2drgcode = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt')));	// fs reads file sync, then JSON.parse turns into object
+var drgcode2name = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/drgCode2Name.txt')));
+var drg2hospitals = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/drg2hospitals.txt')));
 
-icd2hosp.convert(usericd) {
-
+function icd2hosp(usericd) {
 	var hospitalRecordsList = [];	// list of hospitals to be returned
 
 	// if drg names (inpatient 2016) cannot be found given drg code (cms website), then alert user
@@ -23,20 +23,29 @@ icd2hosp.convert(usericd) {
 	// TASK: feature - icd can be searched in part or whole 
 	if (icd2drgcode.hasOwnProperty(usericd)) {
 		var drgCodesArray = icd2drgcode[usericd];
+		console.log('drgCodesArray:', drgCodesArray);
+
+		var drgCodesKeys = Object.keys(drgCodesArray);
 
 		// for code in drg, if code is in drgcode2name
-		for (var i=0; i<drgCodesArray.length; i++) {
-			var drgCode = drgCodesArray[i];
+		for (var i=0; i<drgCodesKeys.length; i++) {
+			var drgCode = drgCodesKeys[i];
+			console.log('drgCode', i, ':', drgCode);			
+
 			if (drgcode2name.hasOwnProperty(drgCode)) {
 				var drgName = drgcode2name[drgCode];
+				console.log('drgName ', i, ':', drgName);			
 
 				// grab hospital records for each drg name
 				if (drg2hospitals.hasOwnProperty(drgName)) {
-					var drghospitalsList = drg2hospitals[drgName];
+					var drgHospitalsList= drg2hospitals[drgName];
+					console.log('drgHospitalsList:', drgHospitalsList);			
 
-					for (var j=0; j<drghospitalsList.length; j++) {
+					for (var j=0; j<drgHospitalsList.length; j++) {
 						var hospitalRecord = drgHospitalsList[j];
 						hospitalRecordsList.push(hospitalRecord);
+						console.log("icd2hosp usericd:", usericd);
+						console.log("icd2hosp hospital record:", hospitalRecord);
 					};
 
 				} else {
@@ -62,4 +71,4 @@ icd2hosp.convert(usericd) {
 };
 
 // export object as module
-module.exports() = icd2hosp;
+module.exports = icd2hosp;

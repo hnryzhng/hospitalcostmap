@@ -38,6 +38,7 @@
 			#map {
 				height: 100%;
 				overflow: hidden;
+				display: none;
 			}
 
 			#consoleDisplay {
@@ -115,7 +116,7 @@
 
 			var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			var icd = "Transplantation of Heart, Allogeneic, Open Approach";
-			var drgName = "014 - ALLOGENEIC BONE MARROW TRANSPLANT";
+			var drgName = "001 - HEART TRANSPLANT OR IMPLANT OF HEART ASSIST SYSTEM W MCC";
 			var radius = 50;
 
 			// POPULATE DROPDOWN
@@ -714,11 +715,38 @@
 					});
 			};
 
+			function getHospitalRecordsList(userIcd) {
+				// get hospital records from backend
+
+				$("#consoleDisplay").append("<p>ajax test</p>";				
+
+				// helper
+				function ajaxSuccess(response) {
+
+					var hospitalRecordsList = response;
+
+					$("#consoleDisplay").append("<p> ajax success response:"+response.toString()+"</p>";
+				};
+
+				// helper
+				function ajaxFail(error) {
+					$("#consoleDisplay").append("<p>ajax fail:"+ error.toString() + "</p>")
+				};		
+
+				$.ajax({
+					type: "GET", 
+					url: "http://localhost:3000/get_hospital_records", 
+					data: JSON.stringify(userIcd),
+					success: ajaxSuccess,
+					error: ajaxFail
+				});
+			};
+
 
 			function main (){
 				// backend: submit user icd input -> hospital records list through AJAX
 				
-
+				getHospitalRecordsList(icd);
 
 				// rid of populateDropdown()
 
@@ -729,6 +757,8 @@
 
 				// event listeners: update through AJAX
 			};
+
+			$(document).ready(main());
 
 			```
 			// CALL FUNCTIONS
