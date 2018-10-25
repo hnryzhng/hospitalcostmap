@@ -60,20 +60,21 @@
 
 				$('#display').append('<p> grabResponse() text input: '+(textInput.toString())+'</p>');
 
-				function ajaxSuccess(resdata){
+				function ajaxSuccess(response){
 					$('#display').append('<p>gb ajax success</p>');
-
-
-
-					$('#display').append('<p>ajax response data:'+JSON.stringify(resdata)+'</p>');
-					for (var i=0; i<resdata.length; i++) {
-						$('#display').append('<p>ajax response record:'+JSON.stringify(resdata[i])+'</p>');
+					
+					$('#display').append('<p>ajax response data:'+JSON.stringify(response)+'</p>');
+					
+					for (var i=0; i<response.length; i++) {
+						$('#display').append('<p>ajax response record:'+JSON.stringify(response[i])+'</p>');
 					};
 
 
-					//var hospitalRecordsList = JSON.parse(hospitalRecordsList);	// turn incoming data string into json object
 
-					//$('#display').append('<p>ajax hospitalRecordsList type:'+(typeof hospitalRecordsList)+'</p>');
+					var hospitalRecordsList = response;
+
+					// pass to initmap for further processing
+
 
 				};
 
