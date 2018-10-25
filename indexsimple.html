@@ -22,11 +22,17 @@
 				width: 200px;
 			};
 
-			#display {
+			#consoleDisplay {
 				height: 1000px;
 				width: 1000px;
 				border: 5px solid black;
 				margin-left: 300px;
+				display: none;
+			}
+
+			#map {
+				height: 100%;
+				overflow: hidden;
 			}
 
 		</style>
@@ -42,11 +48,85 @@
 
 		</div>
 
-		<div id="display"></div>
+		<div id="consoleDisplay"></div>
+
+		<div id="map"></div>
 
 		<script>
 
-			function grabResponse() {
+			/*
+			TO-DO
+			a) figure out Google Maps API for Node JS
+			b) see if initMap should be within grabResponse, or the other way around
+			*/
+			
+			// DEFAULT PARAMS
+			var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
+			var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
+			var radius = 50;
+
+			function placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList) {
+				// latlngObj => hospitalRecordsList
+				$("#consoleDisplay").append("<p>"+'placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString() +"</p>");	
+
+			};			
+
+			function geocodeUserAddress(map, address, radius, hospitalRecordsList) {
+				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
+				geocoder = new google.maps.Geocoder();
+				geocoder.geocode({'address':address}, function(results, status){
+					if (status === 'OK') {
+						var addresslatlngObj = results[0].geometry.location;
+						map.setCenter(addresslatlngObj);
+						new google.maps.Marker({
+							position: addresslatlngObj,
+							map: map
+						});
+
+						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
+						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
+						// addresslatlngObj is already LatLng object
+						placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList);
+					} else {
+						$("#consoleDisplay").append("<p>"+'geocodeUserAddress(): ' + 'there was an error with your address' +"</p>");	
+					};
+				});
+
+			};
+
+			function initMap(address, radius, hospitalRecordsList) {
+				// Google Maps Javascript API
+
+				// Google Maps for Node JS
+				// https://github.com/moshen/node-googlemaps
+				// https://github.com/googlemaps/google-maps-services-js
+				// hide API key 
+				// https://stackoverflow.com/questions/52056077/google-maps-api-using-express-and-node-js
+
+
+				startLatLngObj = new google.maps.LatLng(39.0904811, -108.5627055);
+				$("#consoleDisplay").append("<p>"+'initMap startLatLngObj: ' + JSON.stringify(startLatLngObj)+"</p>");
+
+				// initialize map
+				var map = new google.maps.Map(document.getElementById("map"),{
+					zoom: 10,
+					center: startLatLngObj
+				});
+
+				// starting position
+				if (address === "") {
+					// geolocate
+					// TASK: make this work, as it doesn't connect with placehospitalmarkers() 
+					// geolocateUser(map, newDataArray, latlngObj);
+				} else {
+					// grab geocoded user address
+					geocodeUserAddress(map, address, radius, hospitalRecordsList);
+				};
+
+
+			};
+
+			function grabResponse(address, radius) {
 				// submit through ajax, and return response text
 
 				// express js + ajax		
@@ -56,42 +136,45 @@
 				
 				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
 
-				var textInput = "Transplantation of Heart, Allogeneic, Open Approach";	//$('#text-box').val();
+				
+				//$('#text-box').val();
 
-				$('#display').append('<p> grabResponse() text input: '+(textInput.toString())+'</p>');
+				// submit userIcd (global var)
+				$('#consoleDisplay').append('<p> grabResponse() text input: '+(userIcd.toString())+'</p>');
 
 				function ajaxSuccess(response){
-					$('#display').append('<p>gb ajax success</p>');
+					$('#consoleDisplay').append('<p>gb ajax success</p>');
 					
-					$('#display').append('<p>ajax response data:'+JSON.stringify(response)+'</p>');
+					$('#consoleDisplay').append('<p>ajax response data:'+JSON.stringify(response)+'</p>');
 					
 					for (var i=0; i<response.length; i++) {
-						$('#display').append('<p>ajax response record:'+JSON.stringify(response[i])+'</p>');
+						$('#consoleDisplay').append('<p>ajax response record:'+JSON.stringify(response[i])+'</p>');
 					};
-
 
 
 					var hospitalRecordsList = response;
 
-					// pass to initmap for further processing
+					// PROBLEM: pass to initmap, or have initMap -> grabResponse -> placeHospitalMarkers?, or within placeHospitalMarkers?
 
+					// pass to initmap for further processing
+					initMap(address, radius, hospitalRecordsList);
 
 				};
 
 				function ajaxFail(error){
-					$('#display').append('<p>gb ajax failure </p>');
-					$('#display').append('<p>ajax error: '+JSON.stringify(error)+'</p>');
+					$('#consoleDisplay').append('<p>gb ajax failure </p>');
+					$('#consoleDisplay').append('<p>ajax error: '+JSON.stringify(error)+'</p>');
 					//console.log("ajax fail:", error);
 
 				};
 				/*
 
 				*/
-				var targetUrl = "http://localhost:3000/get_hospital_records/"+textInput;
+				var targetUrl = "http://localhost:3000/get_hospital_records/"+userIcd;
 				$.ajax({
 					type: "GET",
 					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
-					data: JSON.stringify(textInput),	// use module for security
+					data: JSON.stringify(userIcd),	// use module for security
 					success: ajaxSuccess, 
 					error: ajaxFail
 				});	
@@ -100,8 +183,8 @@
 			function eventListener() {
 
 				$('#submitButton').on('click', function() {
-					$('#display').append('<p>event main works</p>');
-					grabResponse();
+					$('#consoleDisplay').append('<p>event main works</p>');
+					grabResponse(address, radius);
 
 				});
 			};
@@ -109,18 +192,20 @@
 			function main() {
 				// event: on click of submitButton, send text in text-box to backend through ajax
 
-				//grabResponse();
+				grabResponse(address, radius);
+
+				// initMap(address, radius, hospitalRecordsList);
 
 				eventListener();
 
 			};
 
 
-			// CALL FUNCTIONS
-			$(document).ready(main());
+			// Call function, or call with Google API in following script tag 
+			// $(document).ready(main());
 
 		</script>
-
+		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rDLKNGLIuCnu9jA6ETfWSoKCRiiafg&libraries=geometry&callback=main"></script>	
 
 	</body>
 
