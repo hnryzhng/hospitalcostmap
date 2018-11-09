@@ -44,7 +44,7 @@
 		<div id='inputContainer'>
 
 			<input type="text" id="text-box" name="ajaxtext">
-			<div id="submitButton">
+			<div id="submitButton"></div>
 
 		</div>
 
@@ -67,7 +67,7 @@
 
 			function placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList) {
 				// latlngObj => hospitalRecordsList
-				$("#consoleDisplay").append("<p>"+'placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString() +"</p>");	
+				console.log('placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString()); 
 
 			};			
 
@@ -88,7 +88,7 @@
 						// addresslatlngObj is already LatLng object
 						placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList);
 					} else {
-						$("#consoleDisplay").append("<p>"+'geocodeUserAddress(): ' + 'there was an error with your address' +"</p>");	
+						console.log('geocodeUserAddress(): there was an error with your address');	
 					};
 				});
 
@@ -105,7 +105,7 @@
 
 
 				startLatLngObj = new google.maps.LatLng(39.0904811, -108.5627055);
-				$("#consoleDisplay").append("<p>"+'initMap startLatLngObj: ' + JSON.stringify(startLatLngObj)+"</p>");
+				console.log('initMap startLatLngObj: ' + JSON.stringify(startLatLngObj));
 
 				// initialize map
 				var map = new google.maps.Map(document.getElementById("map"),{
@@ -140,15 +140,15 @@
 				//$('#text-box').val();
 
 				// submit userIcd (global var)
-				$('#consoleDisplay').append('<p> grabResponse() text input: '+(userIcd.toString())+'</p>');
+				console.log('grabResponse() text input: '+(userIcd.toString()));
 
 				function ajaxSuccess(response){
-					$('#consoleDisplay').append('<p>gb ajax success</p>');
+					console.log('gb ajax success');
 					
-					$('#consoleDisplay').append('<p>ajax response data:'+JSON.stringify(response)+'</p>');
+					console.log('ajax response data:'+JSON.stringify(response));
 					
 					for (var i=0; i<response.length; i++) {
-						$('#consoleDisplay').append('<p>ajax response record:'+JSON.stringify(response[i])+'</p>');
+						console.log('ajax response record:'+JSON.stringify(response[i]));
 					};
 
 
@@ -162,8 +162,8 @@
 				};
 
 				function ajaxFail(error){
-					$('#consoleDisplay').append('<p>gb ajax failure </p>');
-					$('#consoleDisplay').append('<p>ajax error: '+JSON.stringify(error)+'</p>');
+					console.log('gb ajax failure');
+					console.log('ajax error: '+JSON.stringify(error));
 					//console.log("ajax fail:", error);
 
 				};
@@ -183,7 +183,7 @@
 			function eventListener() {
 
 				$('#submitButton').on('click', function() {
-					$('#consoleDisplay').append('<p>event main works</p>');
+					console.log('event main works</p>');
 					grabResponse(address, radius);
 
 				});
