@@ -58,6 +58,7 @@
 			TO-DO
 			a) figure out Google Maps API for Node JS
 			b) see if initMap should be within grabResponse, or the other way around
+			c) change var names: (addresslatlngObj -> userGeoCoords, latlngObj -> hospitalGeoCoords, placeHospitalMarkers() -> filterHospitalRecords)
 			*/
 			
 			// DEFAULT PARAMS
@@ -65,9 +66,49 @@
 			var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			var radius = 50;
 
+
+			function calcMiles(fromGeoCoords, toGeoCoords) {
+				// calc miles between two given geocoord objects
+				var distance = google.maps.geometry.spherical.computeDistanceBetween(fromGeoCoords,toGeoCoords);
+				var distanceMiles = (distance * 0.000621371);
+				console.log("calc miles:", distanceMiles);
+
+				return distanceMiles;
+
+			};
+
+
+
 			function placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList) {
 				// latlngObj => hospitalRecordsList
 				console.log('placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString()); 
+
+				// filter only hospitals within selected radius
+
+				var filteredRecords = [];
+				for (var i=0; i<hospitalRecordsList.length; i++) {
+					record = hospitalRecordsList[i];
+					var geocodedAddress = record["geocoded_address"];
+					var hospitalGeoCoords = new google.maps.LatLng(geocodedAddress["lat"],geocodedAddress["lng"]);	// convert to lat lng object
+
+					var distanceMiles = calcMiles(addresslatlngObj, hospitalGeoCoords);
+
+					// if hospital coords fall within radius
+					if (distanceMiles <= radius) {
+						// filter record for further processing
+						filteredRecords.push(record)
+					};
+
+				};
+				console.log("filtered hospital records: ", filteredRecords);
+
+				// pass filtered records for further processing
+				// TASK BOOKMARK
+				// calcDistPathTime(addresslatlngObj, filteredRecords, map);
+
+				// pass filteredRecords to make bar chart viz
+				// showBarChart(filteredRecords);
+
 
 			};			
 

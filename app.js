@@ -39,7 +39,6 @@ app.get('/get_hospital_records/:icdinput', function(req, res){
 
 });
 
-
 // route: serve testajax.html
 app.get('/testajax.html', function(req, res){
 	res.sendFile(path.join(__dirname + '/testajax.html'));
