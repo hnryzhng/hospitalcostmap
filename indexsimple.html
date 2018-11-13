@@ -3,6 +3,9 @@
 <html>
 
 	<head>
+
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> 			
 
 		<style>
@@ -22,12 +25,9 @@
 				width: 200px;
 			};
 
-			#consoleDisplay {
-				height: 1000px;
-				width: 1000px;
-				border: 5px solid black;
-				margin-left: 300px;
-				display: none;
+			#bar-chart {
+				width: 90%;
+				height: 100%;
 			}
 
 			#map {
@@ -41,14 +41,14 @@
 
 	<body>
 
-		<div id='inputContainer'>
+		<div id="inputContainer">
 
 			<input type="text" id="text-box" name="ajaxtext">
 			<div id="submitButton"></div>
 
 		</div>
 
-		<div id="consoleDisplay"></div>
+		<div id="bar-chart"></div>
 
 		<div id="map"></div>
 
@@ -58,13 +58,214 @@
 			TO-DO
 			a) figure out Google Maps API for Node JS
 			b) see if initMap should be within grabResponse, or the other way around
-			c) change var names: (addresslatlngObj -> userGeoCoords, latlngObj -> hospitalGeoCoords, placeHospitalMarkers() -> filterHospitalRecords)
+			c) change var names: (addresslatlngObj -> userGeocodedObj, latlngObj -> hospitalGeocodedObj, placeHospitalMarkers() -> filterHospitalRecords)
+			d) finish all tasks
+			e) nest helper functions?
 			*/
 			
 			// DEFAULT PARAMS
 			var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			var radius = 50;
+
+
+
+			function makeViz(sortedRecords) {
+				// make bar chart using D3
+				// PROBLEM: v3 or v4?
+
+				// remove previous bar chart if available
+				// d3.select("svg").remove();
+
+
+				// create canvas 
+				var barChartDiv = document.getElementById("bar-chart");
+				var width = barChartDiv.clientWidth;
+				var height = barChartDiv.clientHeight;
+
+				var canvas = d3.select("#bar-chart").append("svg")
+								.attr("width", width)
+								.attr("height", height)
+									.append("g");
+				// create bars
+				var bars = canvas.selectAll("rect")
+								.data(sortedRecords);
+				// add elements
+				bars.enter()
+					.append("rect");
+
+				// update elements
+				// TASK: add event that opens corresponding marker when on hover or click? add id or class to bar?
+				bars
+					.attr("width", function(d,i){return (d.cost/width)*5;})
+					.attr("height", 10)
+					.attr("fill", "steelblue")
+					.on("click", function(){
+						$("#bar-chart").append("<p>clicked on bar</p>")
+					})
+						.append("g");
+
+				// remove old elements
+				bars.exit().remove();
+
+				// create bar text
+				// TASK: or pop up on hover
+				var barText = canvas.selectAll("text")
+									.data(sortedRecords);
+
+				barText.enter()
+						.append("text");
+
+				barText
+					.text(function(d){return `$: ${d.cost}`;})
+					.attr("y", function(d,i){return (i+1)*20;})
+					.attr("fill", "black")
+					.attr("font-size", "10px")
+
+				barText.exit().remove();
+
+			};
+
+			function showBarChart(filteredRecords) {
+				// show top x closest hospitals in descending order of cost
+				// TASK: add event to locate marker when hover over bar?
+
+				// BOOKMARK 3
+
+				// sort records based on cost (desc)
+				function compare(a,b){
+					if (a.cost < b.cost)
+						return 1
+					if (a.cost > b.cost)
+						return -1
+					return 0
+				};
+
+				// TASK: filter top 5?
+				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
+				var sortedRecords = filteredRecords.sort(compare);
+
+				//makeViz(sortedRecords);
+
+
+			};
+
+
+			function createMarkers(filteredRecords, map) {
+				for (var i=0; i<filteredRecords.length; i++) {
+					record = filteredRecords[i];
+
+					// PROBLEM, BOOKMARK 2
+					// correct col names?
+					var hospital = record["hospital"];
+					var address = record["address"];
+					var cost = record["cost"];
+					var geocodedObj = record["geocoded_address"];
+					var durationDriving = record["duration_driving"];
+					var distanceDriving = record["distance_driving"];
+
+					// create marker
+					var currentMarker = new google.maps.Marker({
+						position: geocodedObj,
+						label: hospital,
+						animation: google.maps.Animation.DROP,
+						map: map
+					});
+
+
+					// create info window
+
+					var infoContent = `<div class="info-window" id="${hospital}">
+										<p class="info-hospital">${hospital}</p>
+										<p class="info-cost">Cost: ${cost}</p>
+										<p class="info-duration">Driving time: ${durationDriving}</p>
+										<p class="info-distance">Driving distance: ${distanceDriving}</p>
+										<p class="info-address">Address: ${address}</p>
+									</div>`;
+
+					var infoWindow = new google.maps.InfoWindow({
+						content: infoContent
+					})
+
+					// event: 
+					// TASK: add event so when I hover over bar chart, it zooms into/highlights marker (add identifiers to markers?); somehow connect with bar chart viz
+
+					// event: info window on click
+					currentMarker.addListener("click", function() {
+						infoWindow.open(map, currentMarker);
+
+						console.log("info window content event");
+					});
+
+
+				}
+
+			};
+
+
+			function calcDistPathTime(addresslatlngObj, filteredRecords, map) {
+
+				// calc driving distance using Google's Maps API Distance Matrix
+
+				// put destination geocoded objects into array 
+				var destinationsArray = [];
+				for (var i=0; i<filteredRecords.length; i++) {
+					var geocodedObj = filteredRecords[i]["geocoded_obj"];	// or just geocoded_address?
+					destinationsArray.push(geocodedObj);
+					console.log("calc dist path time geocoded obj: ", geocodedObj);
+				};
+
+				// use API to produce corresponding driving distances from destination array
+				var service = new google.maps.DistanceMatrixService();
+
+				service.getDistanceMatrix({
+					origins: [addresslatlngObj],
+					destinations: destinationsArray,
+					travelMode: 'DRIVING', 
+					unitSystem: google.maps.UnitSystem.IMPERIAL,
+					avoidHighways: false,
+					avoidTolls: false
+				}, function(response, status) {
+					if (status !== 'OK') {
+						console.log('calcDistPathTime error:', JSON.stringify(status));
+					} else {
+						// successful return
+						var originArray = response.originAddresses;
+						var destinationList = response.destinationAddresses;
+
+						// add distance, duration to each hospital record
+						for (var i=0; i<filteredRecords.length; i++) {
+							var record = filteredRecords[i];
+
+							// for each destination duration, distance, add to record
+							// TASK: IF RECORD'S ADDRESS MATCHES WITH API DESTINATION RECORD ADDRESS, THEN ADD DISTANCE, DURATION TO THE RECORD (LOOK AT DESINATION RECORD STRUCTURE TO EXTRACT INFO)
+
+							var destinationRecords = response.rows[0].elements;
+							console.log("distance matrix api destination records array: ", destinationRecords);
+							
+							// BOOKMARK 1
+							// destinationRecords index corresponds to filteredRecords index?
+							// check by looking at address for each destination record, or use Google Maps to check distance
+							record["distance_driving"] = destinationRecords[i].distance.text;
+							record["duration_driving"] = destinationRecords[i].duration.text;
+							console.log("updated records with driving distance, duration", JSON.stringify(record));
+							
+							//for (var j=0; j<destinationRecords.length; j++) {
+								//record["distance_driving"] = destinationRecords[j].distance.text;
+								//record["duration_driving"] = destinationRecords[j].duration.text;
+								//console.log("updated records with driving distance, duration", JSON.stringify(record));
+							//};
+
+						};
+
+						// create marker for each updated hospital record
+						createMarkers(filteredRecords, map);
+
+
+					}
+				});	// end getDistanceMatrix method
+
+			};
 
 
 			function calcMiles(fromGeoCoords, toGeoCoords) {
@@ -78,7 +279,6 @@
 			};
 
 
-
 			function placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList) {
 				// latlngObj => hospitalRecordsList
 				console.log('placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString()); 
@@ -89,13 +289,14 @@
 				for (var i=0; i<hospitalRecordsList.length; i++) {
 					record = hospitalRecordsList[i];
 					var geocodedAddress = record["geocoded_address"];
-					var hospitalGeoCoords = new google.maps.LatLng(geocodedAddress["lat"],geocodedAddress["lng"]);	// convert to lat lng object
+					var hospitalGeocodedObj = new google.maps.LatLng(geocodedAddress["lat"],geocodedAddress["lng"]);	// convert to lat lng object
 
-					var distanceMiles = calcMiles(addresslatlngObj, hospitalGeoCoords);
+					var distanceMiles = calcMiles(addresslatlngObj, hospitalGeocodedObj);
 
 					// if hospital coords fall within radius
 					if (distanceMiles <= radius) {
 						// filter record for further processing
+						record["geocoded_obj"] = hospitalGeocodedObj;
 						filteredRecords.push(record)
 					};
 
@@ -103,11 +304,10 @@
 				console.log("filtered hospital records: ", filteredRecords);
 
 				// pass filtered records for further processing
-				// TASK BOOKMARK
-				// calcDistPathTime(addresslatlngObj, filteredRecords, map);
+				calcDistPathTime(addresslatlngObj, filteredRecords, map);
 
 				// pass filteredRecords to make bar chart viz
-				// showBarChart(filteredRecords);
+				//showBarChart(filteredRecords);
 
 
 			};			
@@ -243,7 +443,7 @@
 
 
 			// Call function, or call with Google API in following script tag 
-			// $(document).ready(main());
+			$(document).ready(main());
 
 		</script>
 		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rDLKNGLIuCnu9jA6ETfWSoKCRiiafg&libraries=geometry&callback=main"></script>	
