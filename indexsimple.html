@@ -9,6 +9,14 @@
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> 			
 
 		<style>
+
+			#inputContainer {
+				border: 1px solid red;
+				position: fixed;
+				background-color: white;
+				z-index: 100;
+			}
+
 			#submitButton {
 				background-color: #4CAF50; /* Green */
 				border: none;
@@ -20,7 +28,6 @@
 				font-size: 16px;				
 			};
 
-
 			#text-box {
 				width: 200px;
 			};
@@ -28,11 +35,15 @@
 			#bar-chart {
 				width: 90%;
 				height: 100%;
+				display: none;
 			}
 
 			#map {
-				height: 100%;
+				width: 100%;
+				height: 700px;
 				overflow: hidden;
+				border: 1px solid blue;
+				z-index: 99;
 			}
 
 		</style>
@@ -67,8 +78,6 @@
 			var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			var radius = 50;
-
-
 
 			function makeViz(sortedRecords) {
 				// make bar chart using D3
@@ -164,13 +173,7 @@
 					var durationDriving = record["duration_driving"];
 					var distanceDriving = record["distance_driving"];
 
-					// create marker
-					var currentMarker = new google.maps.Marker({
-						position: geocodedObj,
-						label: hospital,
-						animation: google.maps.Animation.DROP,
-						map: map
-					});
+					//console.log("create markers record:", record);
 
 
 					// create info window
@@ -185,20 +188,34 @@
 
 					var infoWindow = new google.maps.InfoWindow({
 						content: infoContent
-					})
+					});
+
+					console.log("infoContent:", infoContent);
+
+					// create marker
+					var currentMarker = new google.maps.Marker({
+						position: geocodedObj,
+						label: hospital,
+						animation: google.maps.Animation.DROP,
+						map: map
+					});
 
 					// event: 
 					// TASK: add event so when I hover over bar chart, it zooms into/highlights marker (add identifiers to markers?); somehow connect with bar chart viz
 
 					// event: info window on click
 					currentMarker.addListener("click", function() {
-						infoWindow.open(map, currentMarker);
+
+						// PROBLEM: cannot open correct info window
+
+						infoWindow.open(map, this);
+						console.log("event click on current marker:", this)
 
 						console.log("info window content event");
 					});
 
 
-				}
+				};
 
 			};
 
@@ -243,18 +260,9 @@
 							var destinationRecords = response.rows[0].elements;
 							console.log("distance matrix api destination records array: ", destinationRecords);
 							
-							// BOOKMARK 1
-							// destinationRecords index corresponds to filteredRecords index?
-							// check by looking at address for each destination record, or use Google Maps to check distance
 							record["distance_driving"] = destinationRecords[i].distance.text;
 							record["duration_driving"] = destinationRecords[i].duration.text;
 							console.log("updated records with driving distance, duration", JSON.stringify(record));
-							
-							//for (var j=0; j<destinationRecords.length; j++) {
-								//record["distance_driving"] = destinationRecords[j].distance.text;
-								//record["duration_driving"] = destinationRecords[j].duration.text;
-								//console.log("updated records with driving distance, duration", JSON.stringify(record));
-							//};
 
 						};
 
@@ -443,7 +451,7 @@
 
 
 			// Call function, or call with Google API in following script tag 
-			$(document).ready(main());
+			// $(document).ready(main());
 
 		</script>
 		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rDLKNGLIuCnu9jA6ETfWSoKCRiiafg&libraries=geometry&callback=main"></script>	
