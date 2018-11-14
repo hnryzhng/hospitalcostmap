@@ -46,6 +46,12 @@
 				border: 1px solid green;
 			}
 
+			#bar-chart {
+				width: 90%;
+				height: 300px;
+				display: none;
+			}
+
 			#map {
 				width: 100%;
 				height: 700px;
@@ -63,15 +69,14 @@
 		<div id="displayContainer" class="container">
 
 			<div id="inputContainer">
-
 				<input type="text" id="text-box" name="ajaxtext">
 				<div id="submitButton"></div>
-
 			</div>
 
 			<div id="bar-chart-container">
 				<div id="bar-chart"></div>
 			</div>
+
 		</div>
 
 		<div id="map"></div>
@@ -99,11 +104,18 @@
 				// remove previous bar chart if available
 				// d3.select("svg").remove();
 
-
 				// create canvas 
 				var barChartDiv = document.getElementById("bar-chart");
 				var width = barChartDiv.clientWidth;
 				var height = barChartDiv.clientHeight;
+
+
+				var widthScale = d3.scaleLinear()
+									.domain([0, d3.max(sortedRecords.map(function(d){return d.cost;}))])	// create new array based on cost, then find max cost
+									.range([0, width]);
+
+
+				// TASK: create height scale (map num of records to height)
 
 				var canvas = d3.select("#bar-chart").append("svg")
 								.attr("width", width)
@@ -113,23 +125,36 @@
 				var bars = canvas.selectAll("rect")
 								.data(sortedRecords);
 				// add elements
+				// use block below once user input is incorporated so that bars can be updated
 				bars.enter()
-					.append("rect");
+					.append("rect")
+					.attr("width", function(d,i){return widthScale(d.cost);})
+					.attr("height", 10)
+					.attr("fill", "blue")
+					.attr("y", function(d,i){return(i+1)*20;})
+
+				/*
+
+				// add elements
+				bars.enter()
+					.append("rect")
 
 				// update elements
 				// TASK: add event that opens corresponding marker when on hover or click? add id or class to bar?
 				bars
-					.attr("width", function(d,i){return (d.cost/width)*5;})
+					.attr("width", function(d,i){return (d["cost"]);})
 					.attr("height", 10)
-					.attr("fill", "steelblue")
+					.attr("fill", "blue")
+					.attr("y", function(d,i){return(i+1)*20;})
 					.on("click", function(){
 						$("#bar-chart").append("<p>clicked on bar</p>")
 					})
 						.append("g");
-
 				// remove old elements
 				bars.exit().remove();
+				*/
 
+				/*
 				// create bar text
 				// TASK: or pop up on hover (collapsible)
 				var barText = canvas.selectAll("text")
@@ -145,6 +170,7 @@
 					.attr("font-size", "10px")
 
 				barText.exit().remove();
+				*/
 
 			};
 
@@ -166,7 +192,7 @@
 				// TASK: filter top 5?
 				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
 				var sortedRecords = filteredRecords.sort(compare);
-
+				console.log("bar chart sorted records:", sortedRecords);
 				makeViz(sortedRecords);
 
 
@@ -185,7 +211,7 @@
 					var durationDriving = record["duration_driving"];
 					var distanceDriving = record["distance_driving"];
 
-					console.log("create markers record:", record);
+					//console.log("create markers record:", record);
 
 
 					// create info window					
@@ -203,7 +229,7 @@
 						content: infoContent
 					});
 
-					console.log("infoContent:", infoContent);
+					//console.log("infoContent:", infoContent);
 
 					// create marker
 					var marker = new google.maps.Marker({
@@ -213,7 +239,7 @@
 						animation: google.maps.Animation.DROP
 					});
 
-					console.log("marker hospital label:", hospital)
+					//console.log("marker hospital label:", hospital)
 					// event: 
 					// TASK: add event so when I hover over bar chart, it zooms into/highlights marker (add identifiers to markers?); somehow connect with bar chart viz
 
@@ -332,6 +358,7 @@
 				};
 				console.log("filtered hospital records: ", filteredRecords);
 
+				
 				// pass filtered records for further processing
 				calcDistPathTime(addresslatlngObj, filteredRecords, map);
 
