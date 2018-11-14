@@ -10,11 +10,18 @@
 
 		<style>
 
+			#displayContainer {
+				width: 300px;
+				height: 500px;
+				position: fixed;
+				z-index: 100;
+				background-color: white;
+			}
+
 			#inputContainer {
 				border: 1px solid red;
 				position: fixed;
 				background-color: white;
-				z-index: 100;
 			}
 
 			#submitButton {
@@ -32,10 +39,11 @@
 				width: 200px;
 			};
 
-			#bar-chart {
+			#bar-chart-container {
 				width: 90%;
-				height: 100%;
-				display: none;
+				height: 300px;
+				background-color: white;
+				border: 1px solid green;
 			}
 
 			#map {
@@ -52,14 +60,19 @@
 
 	<body>
 
-		<div id="inputContainer">
+		<div id="displayContainer" class="container">
 
-			<input type="text" id="text-box" name="ajaxtext">
-			<div id="submitButton"></div>
+			<div id="inputContainer">
 
+				<input type="text" id="text-box" name="ajaxtext">
+				<div id="submitButton"></div>
+
+			</div>
+
+			<div id="bar-chart-container">
+				<div id="bar-chart"></div>
+			</div>
 		</div>
-
-		<div id="bar-chart"></div>
 
 		<div id="map"></div>
 
@@ -118,7 +131,7 @@
 				bars.exit().remove();
 
 				// create bar text
-				// TASK: or pop up on hover
+				// TASK: or pop up on hover (collapsible)
 				var barText = canvas.selectAll("text")
 									.data(sortedRecords);
 
@@ -154,18 +167,17 @@
 				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
 				var sortedRecords = filteredRecords.sort(compare);
 
-				//makeViz(sortedRecords);
+				makeViz(sortedRecords);
 
 
 			};
 
 
 			function createMarkers(filteredRecords, map) {
-				for (var i=0; i<filteredRecords.length; i++) {
-					record = filteredRecords[i];
 
-					// PROBLEM, BOOKMARK 2
-					// correct col names?
+				function buildMarker(record) {
+					// helper function
+					// create marker and info window in function separate from loop so as not to overwrite the marker
 					var hospital = record["hospital"];
 					var address = record["address"];
 					var cost = record["cost"];
@@ -173,13 +185,14 @@
 					var durationDriving = record["duration_driving"];
 					var distanceDriving = record["distance_driving"];
 
-					//console.log("create markers record:", record);
+					console.log("create markers record:", record);
 
 
-					// create info window
-
+					// create info window					
+					// PROBLEM: userIcd var may not be global
 					var infoContent = `<div class="info-window" id="${hospital}">
 										<p class="info-hospital">${hospital}</p>
+										<p class="user-icd">${userIcd}</p>
 										<p class="info-cost">Cost: ${cost}</p>
 										<p class="info-duration">Driving time: ${durationDriving}</p>
 										<p class="info-distance">Driving distance: ${distanceDriving}</p>
@@ -193,28 +206,36 @@
 					console.log("infoContent:", infoContent);
 
 					// create marker
-					var currentMarker = new google.maps.Marker({
+					var marker = new google.maps.Marker({
 						position: geocodedObj,
+						map: map,
 						label: hospital,
-						animation: google.maps.Animation.DROP,
-						map: map
+						animation: google.maps.Animation.DROP
 					});
 
+					console.log("marker hospital label:", hospital)
 					// event: 
 					// TASK: add event so when I hover over bar chart, it zooms into/highlights marker (add identifiers to markers?); somehow connect with bar chart viz
 
 					// event: info window on click
-					currentMarker.addListener("click", function() {
-
-						// PROBLEM: cannot open correct info window
+					marker.addListener("click", function() {
 
 						infoWindow.open(map, this);
-						console.log("event click on current marker:", this)
 
-						console.log("info window content event");
+						map.addListener("click", function() {
+							// close info window if clicking anywhere on map
+							infoWindow.close(map, this);
+						});
+
 					});
 
+				};
 
+
+				// PROCESSING LOOP: run to create markers and info window
+				for (var i=0; i<filteredRecords.length; i++) {
+					record = filteredRecords[i];
+					buildMarker(record);
 				};
 
 			};
@@ -315,7 +336,7 @@
 				calcDistPathTime(addresslatlngObj, filteredRecords, map);
 
 				// pass filteredRecords to make bar chart viz
-				//showBarChart(filteredRecords);
+				showBarChart(filteredRecords);
 
 
 			};			
