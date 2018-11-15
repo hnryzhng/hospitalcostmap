@@ -58,6 +58,7 @@
 				overflow: hidden;
 				border: 1px solid blue;
 				z-index: 99;
+				display: none;
 			}
 
 		</style>
@@ -192,7 +193,7 @@
 				// TASK: filter top 5?
 				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
 				var sortedRecords = filteredRecords.sort(compare);
-				console.log("bar chart sorted records:", sortedRecords);
+				//console.log("bar chart sorted records:", sortedRecords);
 				makeViz(sortedRecords);
 
 
@@ -276,7 +277,7 @@
 				for (var i=0; i<filteredRecords.length; i++) {
 					var geocodedObj = filteredRecords[i]["geocoded_obj"];	// or just geocoded_address?
 					destinationsArray.push(geocodedObj);
-					console.log("calc dist path time geocoded obj: ", geocodedObj);
+					//console.log("calc dist path time geocoded obj: ", geocodedObj);
 				};
 
 				// use API to produce corresponding driving distances from destination array
@@ -305,7 +306,7 @@
 							// TASK: IF RECORD'S ADDRESS MATCHES WITH API DESTINATION RECORD ADDRESS, THEN ADD DISTANCE, DURATION TO THE RECORD (LOOK AT DESINATION RECORD STRUCTURE TO EXTRACT INFO)
 
 							var destinationRecords = response.rows[0].elements;
-							console.log("distance matrix api destination records array: ", destinationRecords);
+							//console.log("distance matrix api destination records array: ", destinationRecords);
 							
 							record["distance_driving"] = destinationRecords[i].distance.text;
 							record["duration_driving"] = destinationRecords[i].duration.text;
@@ -327,7 +328,7 @@
 				// calc miles between two given geocoord objects
 				var distance = google.maps.geometry.spherical.computeDistanceBetween(fromGeoCoords,toGeoCoords);
 				var distanceMiles = (distance * 0.000621371);
-				console.log("calc miles:", distanceMiles);
+				//console.log("calc miles:", distanceMiles);
 
 				return distanceMiles;
 
@@ -356,14 +357,14 @@
 					};
 
 				};
-				console.log("filtered hospital records: ", filteredRecords);
+				//console.log("filtered hospital records: ", filteredRecords);
 
 				
 				// pass filtered records for further processing
 				calcDistPathTime(addresslatlngObj, filteredRecords, map);
 
 				// pass filteredRecords to make bar chart viz
-				showBarChart(filteredRecords);
+				//showBarChart(filteredRecords);
 
 
 			};			
@@ -486,14 +487,71 @@
 				});
 			};
 
+
+
+			function fastFilterInputWrapper() {
+
+				console.log("fast filter hello");
+
+				// define variables, functions
+				var filteredList = [];
+				var textInput = "allogeneic";	//$("#text-box").val();
+				var maxDisplay = 5;
+
+				function inputMatch(item) {
+					// check if user input can be found in list item
+					var searchText = textInput.toLowerCase();
+					var itemText = item.toLowerCase();
+					
+					if (itemText.indexOf(searchText) !== -1) {
+						//console.log("input match search text:", searchText);
+						//console.log("input match item text:", itemText);						
+					};
+
+					return itemText.indexOf(searchText) !== -1;
+
+
+				};
+
+				function getFilteredItems(icdList) {
+					filteredList = icdList.filter(inputMatch);
+					//generateList();
+				}
+
+
+
+				// load json object of icd
+				$.getJSON("/static/icd2drgCode.txt", function(dataObj){
+					//console.log("icd map object keys:", Object.keys(dataObj));
+
+					// convert to list of keys for search
+					var icdList = Object.keys(dataObj);
+					console.log("fast filter icd list: ", icdList);
+
+					getFilteredItems(icdList);
+
+				});
+
+				
+				// fast filter
+
+
+			}
+
+
+
+
+
 			function main() {
 				// event: on click of submitButton, send text in text-box to backend through ajax
 
-				grabResponse(address, radius);
 
-				// initMap(address, radius, hospitalRecordsList);
+				fastFilterInputWrapper();
 
-				eventListener();
+				//grabResponse(address, radius);
+
+
+				//eventListener();
 
 			};
 

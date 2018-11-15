@@ -5,8 +5,11 @@ var http = require('http');
 var express = require('express');
 var path = require('path');
 var bodyParser = require('body-parser');	// for parsing body of POST request
+var fs = require('fs');
 
 var icd2hosp = require(path.join(__dirname + '/icd2hosp.js'));
+var icd2drgObj = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt'), 'utf8'))	// read in JSON file
+
 
 // initialize app object 
 var app = express();
@@ -15,18 +18,31 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-form-urlencoded
 app.use(bodyParser.json());	// parse application/json
 
+// TASK: serve static files (including index.html) using middleware; can put index.html in a 'client' folder
+// https://expressjs.com/en/starter/static-files.html
+// app.use(express.static('hospitalcostmap_app'));
+
+
 // route: serve index.html
 app.get('/', function(req, res) {
 	res.sendFile(path.join(__dirname + '/index.html'));
 });
 
 
-// route: serve index.html
+// route: serve indexsimple.html
 app.get('/indexsimple.html', function(req, res) {
 	res.sendFile(path.join(__dirname + '/indexsimple.html'));
 });
 
-// route: 
+
+// route
+app.get('/static/icd2drgCode.txt', function(req, res){
+	// send icd2drgCode json for fast filter feature
+	res.json(icd2drgObj);
+});
+
+
+// route: query from user input
 app.get('/get_hospital_records/:icdinput', function(req, res){
 
 	var icdInput = req.params.icdinput;	
@@ -38,6 +54,8 @@ app.get('/get_hospital_records/:icdinput', function(req, res){
 	res.send(hospitalRecordsList);
 
 });
+
+/*
 
 // route: serve testajax.html
 app.get('/testajax.html', function(req, res){
@@ -63,6 +81,7 @@ app.get('/ajaxroute', function(req, res){
 
 	res.send(responseList);
 });
+*/
 
 // initialize server instance
 // http://localhost:portNum
