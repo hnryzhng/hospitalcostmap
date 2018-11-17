@@ -484,6 +484,29 @@
 				});	
 			};
 
+
+			function navigateSearchResults() {
+				// defines events for choosing and selecting filtered icd results
+
+				/**
+				simple version
+				first hook up to userIcd parameter in grabResponse through on click of list item using mouse
+
+				pseudo-code:
+				-on press of down or up arrow in text-box
+				-results-display goes to corresponding list item
+				-list item gains .activate class, with corresponding css style (remove .activate class from previous list item first)
+				-on pressing enter in text-box, if any list item has .activate class, grab text content of item
+				-hook text content of item to usericd in grabResponse (by returning text content here, then passing as parameter to grabResponse?)
+				**/ 
+
+
+
+
+
+			};
+
+
 			function eventListener() {
 
 				$('#submitButton').on('click', function() {
@@ -491,15 +514,19 @@
 					grabResponse(address, radius);
 
 				});
+
+				// navigateSearchResults();
+
 			};
 
 
 
 			function fastFilterInputWrapper() {
 
+				// BOOKMARK
+				// hook selected icd (selectedIcd) from autocomplete to userIcd in grabResponse
 				// TASK: Add autocomplete dropdown
 				// https://www.w3schools.com/howto/howto_js_autocomplete.asp
-				
 
 				// define variables, functions
 				var filteredList = [];
@@ -537,7 +564,7 @@
 						else break;
 					};
 
-					resultsDisplay.innerHTML = " ";	// clear display defined in global variable
+					resultsDisplay.innerHTML = "";	// clear display defined in global variable
 					resultsDisplay.appendChild(htmlFrag);	// appends all html list items in fragment
 
 				};
