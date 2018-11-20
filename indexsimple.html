@@ -7,7 +7,6 @@
 		<script src="https://d3js.org/d3.v4.min.js"></script>
 
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> 			
-
 		<style>
 
 			#displayContainer {
@@ -44,6 +43,10 @@
 				width: 200px;
 				height: 300px;
 				border: 1px solid green;
+			}
+
+			.active {
+				border: 1px solid red;
 			}
 
 			#bar-chart-container {
@@ -485,12 +488,14 @@
 			};
 
 
-			function navigateSearchResults() {
+			function autocomplete() {
 				// defines events for choosing and selecting filtered icd results
 
 				/**
+				detecting which element was clicked with jQuery
+
 				simple version
-				first hook up to userIcd parameter in grabResponse through on click of list item using mouse
+				first hook up to userIcd parameter in grabResponse through on click of list item using mouse				
 
 				pseudo-code:
 				-on press of down or up arrow in text-box
@@ -500,8 +505,142 @@
 				-hook text content of item to usericd in grabResponse (by returning text content here, then passing as parameter to grabResponse?)
 				**/ 
 
+				// add event: if input has a value, and results display has child items, then css display results display, perhaps this event handler wraps all else
+
+				
 
 
+
+
+				// PROBLEM: active class won't stay, may have to do with key press event since holding down arrow retains class active; 
+				//namespace problem? define functions independently from loop, and look at scope of variables? refer to autocomplete reference link
+				// https://www.w3schools.com/howto/howto_js_autocomplete.asp
+
+				//var resultsDisplay = document.getElementById("results-display");
+				//var childrenList = resultsDisplay.children;
+				
+				var textField = document.getElementById("text-box");
+				var index = -1;
+				/*
+				// event: click on list item	
+				function addChildEvent(selectedChild) {
+					// keep separate from loop to avoid overwriting previous variables in loop
+					// maintain independent namespace
+					selectedChild.addEventListener("click", function(event){
+						console.log("selected child clicked:", selectedChild.textContent);
+						selectedChild.classList.add("active");
+					});
+				}
+
+				resultsDisplay.addEventListener("click", function(event){
+					//console.log("click results display");
+
+					for (var i=0; i<childrenList.length; i++) {
+						var selectedChild = childrenList[i];
+						addChildEvent(selectedChild)
+					}
+					//var selectedChild = childrenList[0];
+					//selectedChild.addEventListener("click", function(event){
+					//	console.log("first child inside:", selectedChild.textContent);
+					//});
+
+				});
+				*/
+
+				// event: select list item using arrow keys
+				function removeActive(childrenList) {
+					for(var i=0;i<childrenList.length;i++){
+						childrenList[i].classList.remove("active");
+					}
+				};
+
+				function selectResultDOM(childrenList) {
+					//console.log("event index:", index);
+					//console.log("children list:", childrenList);
+					var selectedChild = childrenList[index]
+					console.log("select result index:", index)
+					console.log("select result dom user icd: ", selectedChild.textContent);
+					
+					removeActive(childrenList);
+
+
+					selectedChild.classList.add("active");
+				}
+				
+				textField.addEventListener("keydown", function(event){
+					resultsDisplay = document.getElementById("results-display");
+					childrenList = resultsDisplay.children;
+					if (event.keyCode == 38) {
+						// up arrow
+						index--
+						selectResultDOM(childrenList);
+
+					} else if (event.keyCode == 40) {
+						// down arrow
+						index++
+						selectResultDOM(childrenList);
+					};
+				});
+				
+
+
+
+
+
+
+				/**
+
+				var resultsDisplay = $("#results-display");
+				var textField = $("#text-box");
+				var index = 0;
+				function selectResult(){
+					//console.log("results display clicked");
+
+					allChildren = resultsDisplay.children();
+					//allChildren.removeClass("active");
+					selectedChild = allChildren.eq(index)
+					selectedChild.addClass("active");
+					console.log("select result index:", index);
+
+					var allChildren = resultsDisplay.children();
+					
+					allChildren.on("click",function(event){
+
+						// remove active class from all other list elements of results display
+						$(this).siblings().removeClass("active");
+						// add active class to current list element
+						$(this).addClass("active");
+
+						searchResult = $(this).text();
+
+						console.log(searchResult);
+
+					});
+
+
+				};
+
+
+				resultsDisplay.on("click", function(){
+				}); 
+
+				textField.on("keydown", function(event) {
+					if (event.which==38) {
+						// up arrow
+						index--;
+						event.preventDefault();
+						selectResult();
+					};
+
+					if (event.which==40){
+						// down arrow
+						index++;
+						event.preventDefault();
+						selectResult();
+					};
+
+				});
+				**/
 
 
 			};
@@ -509,16 +648,16 @@
 
 			function eventListener() {
 
+				autocomplete();
+				/*
 				$('#submitButton').on('click', function() {
 					console.log('event main works</p>');
 					grabResponse(address, radius);
 
 				});
-
-				// navigateSearchResults();
+				*/
 
 			};
-
 
 
 			function fastFilterInputWrapper() {
@@ -527,6 +666,8 @@
 				// hook selected icd (selectedIcd) from autocomplete to userIcd in grabResponse
 				// TASK: Add autocomplete dropdown
 				// https://www.w3schools.com/howto/howto_js_autocomplete.asp
+
+				// use DOM methods instead of jQuery for performance
 
 				// define variables, functions
 				var filteredList = [];
@@ -538,15 +679,11 @@
 
 				function generateListItem(item) {
 					// create html elements for the matching item
-					var li = document.createElement("l");
-					var p = document.createElement("p");
+					var li = document.createElement("li");
 					// set classes for elements
-					//li.classList.add("");
-					//p.classList.add("")
+					li.classList.add("result");
 					// set text content
-					p.textContent = item;
-					// append p to li
-					li.appendChild(p);
+					li.textContent = item;
 
 					return li;
 				};
@@ -633,14 +770,13 @@
 
 				grabResponse(address, radius);
 
-
-				//eventListener();
+				eventListener();
 
 			};
 
 
 			// Call function, or call with Google API in following script tag 
-			// $(document).ready(main());
+			//$(document).ready(main());
 
 		</script>
 		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rDLKNGLIuCnu9jA6ETfWSoKCRiiafg&libraries=geometry&callback=main"></script>	
