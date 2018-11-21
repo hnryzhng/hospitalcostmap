@@ -32,7 +32,6 @@
 				text-decoration: none;
 				display: inline-block;
 				font-size: 16px;
-				display: none;				
 			};
 
 			#text-box {
@@ -81,6 +80,17 @@
 			<div id="inputContainer">
 				<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here">
 				<div id="results-display"></div>
+
+				<input type="text" name="address" id="address-box" placeholder="ADDRESS" value="75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798"><br>
+
+				<select id="radius-dropdown">
+					<option> Radius </option>
+					<option id="radius_5">5</option>
+					<option id="radius_10">10</option>
+					<option id="radius_50">50</option>
+					<option id="radius_100">100</option>
+				</select>
+
 				<div id="submitButton"></div>
 			</div>
 
@@ -493,6 +503,8 @@
 				// defines events for choosing and selecting filtered icd results
 
 				/**
+				autocomplete feature:
+				https://www.w3schools.com/howto/howto_js_autocomplete.asp
 				detecting which element was clicked with jQuery
 
 				simple version
@@ -512,6 +524,7 @@
 				var resultsDisplay = document.getElementById("results-display");
 				var childrenList = resultsDisplay.children;
 				var textField = document.getElementById("text-box");
+				var submitButton = document.getElementById("submitButton");
 				var index = -1;
 
 				function removeActive(childrenList) {
@@ -531,6 +544,11 @@
 							selectedChild.classList.add("active");
 							event.stopPropagation();	// stop child event from bubbling up to parent, avoiding redundant trigger of event
 						});
+
+						selectedChild.addEventListener("click", function(event){
+
+							submitButton.click();
+						})
 					}
 
 					
@@ -544,7 +562,6 @@
 
 					});
 				};
-				
 				
 
 				// autocomplete event: select generated list item with arrow keys
@@ -585,7 +602,7 @@
 							// enter key
 							//event.preventDefault();	// prevents form from being submitted if "enter" key is pressed
 							//childrenList[index].click();	// simulates click on active item
-
+							submitButton.click();
 						}
 					});
 
@@ -599,26 +616,9 @@
 			};
 
 
-			function eventListener() {
-
-				autocomplete();
-				/*
-				$('#submitButton').on('click', function() {
-					console.log('event main works</p>');
-					grabResponse(address, radius);
-
-				});
-				*/
-
-			};
-
-
 			function fastFilterInputWrapper() {
 
-				// BOOKMARK
 				// hook selected icd (selectedIcd) from autocomplete to userIcd in grabResponse
-				// TASK: Add autocomplete dropdown
-				// https://www.w3schools.com/howto/howto_js_autocomplete.asp
 
 				// use DOM methods instead of jQuery for performance
 
@@ -711,19 +711,41 @@
 				});
 			}
 
+			function searchFunctions() {
+				autocomplete();
+				fastFilterInputWrapper();
+			}
+
+			function userInputEventListeners() {
+
+				$("#submitButton").on("click", function() {
+
+					// BOOKMARK: update parameters upon change in user input fields
+					var address = $("#address-box").val();
+					var radius = $("#radius-dropdown").val();
+					console.log("event listener address:", address);
+					console.log("event listener radius:", radius);
 
 
+					console.log("submitbutton was clicked");
+					targetUserIcd = document.getElementsByClassName("active")[0].textContent;
+					console.log("target user icd: ", targetUserIcd);
 
+					// pass in updated paramters to request
+					//grabResponse();
+				})
+				
+
+			};
 
 			function main() {
-				// event: on click of submitButton, send text in text-box to backend through ajax
 
-
-				fastFilterInputWrapper();
-
+				// call grab response upon initial page load
 				grabResponse(address, radius);
 
-				eventListener();
+				searchFunctions();
+
+				userInputEventListeners();
 
 			};
 
