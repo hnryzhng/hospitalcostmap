@@ -67,6 +67,7 @@
 				overflow: hidden;
 				border: 1px solid blue;
 				z-index: 99;
+				display: none;
 			}
 
 		</style>
@@ -508,140 +509,92 @@
 				// add event: if input has a value, and results display has child items, then css display results display, perhaps this event handler wraps all else
 
 				
-
-
-
-
-				// PROBLEM: active class won't stay, may have to do with key press event since holding down arrow retains class active; 
-				//namespace problem? define functions independently from loop, and look at scope of variables? refer to autocomplete reference link
-				// https://www.w3schools.com/howto/howto_js_autocomplete.asp
-
-				//var resultsDisplay = document.getElementById("results-display");
-				//var childrenList = resultsDisplay.children;
-				
+				var resultsDisplay = document.getElementById("results-display");
+				var childrenList = resultsDisplay.children;
 				var textField = document.getElementById("text-box");
 				var index = -1;
-				/*
-				// event: click on list item	
-				function addChildEvent(selectedChild) {
-					// keep separate from loop to avoid overwriting previous variables in loop
-					// maintain independent namespace
-					selectedChild.addEventListener("click", function(event){
-						console.log("selected child clicked:", selectedChild.textContent);
-						selectedChild.classList.add("active");
-					});
-				}
 
-				resultsDisplay.addEventListener("click", function(event){
-					//console.log("click results display");
-
-					for (var i=0; i<childrenList.length; i++) {
-						var selectedChild = childrenList[i];
-						addChildEvent(selectedChild)
-					}
-					//var selectedChild = childrenList[0];
-					//selectedChild.addEventListener("click", function(event){
-					//	console.log("first child inside:", selectedChild.textContent);
-					//});
-
-				});
-				*/
-
-				// event: select list item using arrow keys
 				function removeActive(childrenList) {
 					for(var i=0;i<childrenList.length;i++){
 						childrenList[i].classList.remove("active");
 					}
 				};
 
-				function selectResultDOM(childrenList) {
-					//console.log("event index:", index);
-					//console.log("children list:", childrenList);
-					var selectedChild = childrenList[index]
-					console.log("select result index:", index)
-					console.log("select result dom user icd: ", selectedChild.textContent);
+				// autocomplete event: click generated list item
+				function clickEvents() {
+					function addChildClickEvent(selectedChild) {
+						// keep separate from loop to avoid overwriting previous variables in loop; maintain independent namespace
+
+						selectedChild.addEventListener("mouseover", function(event){
+							console.log("child selected:", selectedChild.textContent);
+							removeActive(childrenList);
+							selectedChild.classList.add("active");
+							event.stopPropagation();	// stop child event from bubbling up to parent, avoiding redundant trigger of event
+						});
+					}
+
 					
-					removeActive(childrenList);
+					resultsDisplay.addEventListener("mouseover", function(event){
+						//console.log("click results display");
 
-
-					selectedChild.classList.add("active");
-				}
-				
-				textField.addEventListener("keydown", function(event){
-					resultsDisplay = document.getElementById("results-display");
-					childrenList = resultsDisplay.children;
-					if (event.keyCode == 38) {
-						// up arrow
-						index--
-						selectResultDOM(childrenList);
-
-					} else if (event.keyCode == 40) {
-						// down arrow
-						index++
-						selectResultDOM(childrenList);
-					};
-				});
-				
-
-
-
-
-
-
-				/**
-
-				var resultsDisplay = $("#results-display");
-				var textField = $("#text-box");
-				var index = 0;
-				function selectResult(){
-					//console.log("results display clicked");
-
-					allChildren = resultsDisplay.children();
-					//allChildren.removeClass("active");
-					selectedChild = allChildren.eq(index)
-					selectedChild.addClass("active");
-					console.log("select result index:", index);
-
-					var allChildren = resultsDisplay.children();
-					
-					allChildren.on("click",function(event){
-
-						// remove active class from all other list elements of results display
-						$(this).siblings().removeClass("active");
-						// add active class to current list element
-						$(this).addClass("active");
-
-						searchResult = $(this).text();
-
-						console.log(searchResult);
+						for (var i=0; i<childrenList.length; i++) {
+							var selectedChild = childrenList[i];
+							addChildClickEvent(selectedChild)
+						}
 
 					});
+				};
+				
+				
 
+				// autocomplete event: select generated list item with arrow keys
+				function arrowEvents() {
+					
+					function selectResultDOM(childrenList) {
+						//console.log("event index:", index);
+						//console.log("children list:", childrenList);
+
+						// simulate cycling through list
+						if (index >= childrenList.length) index = 0;
+						if (index < 0) index = childrenList.length-1;
+
+						var selectedChild = childrenList[index];
+						console.log("select result index:", index);
+						console.log("select result dom user icd: ", selectedChild.textContent);
+
+						// remove active class on all list items
+						removeActive(childrenList);
+
+						// add active class to selected list item
+						selectedChild.classList.add("active");
+					}
+					
+					textField.addEventListener("keydown", function(event){
+						
+						if (event.keyCode == 38) {
+							// up arrow
+							event.preventDefault();
+							index--
+							selectResultDOM(childrenList);
+						} else if (event.keyCode == 40) {
+							// down arrow
+							event.preventDefault();
+							index++
+							selectResultDOM(childrenList);
+						} else if (event.keyCode == 13) {
+							// enter key
+							//event.preventDefault();	// prevents form from being submitted if "enter" key is pressed
+							//childrenList[index].click();	// simulates click on active item
+
+						}
+					});
 
 				};
 
 
-				resultsDisplay.on("click", function(){
-				}); 
-
-				textField.on("keydown", function(event) {
-					if (event.which==38) {
-						// up arrow
-						index--;
-						event.preventDefault();
-						selectResult();
-					};
-
-					if (event.which==40){
-						// down arrow
-						index++;
-						event.preventDefault();
-						selectResult();
-					};
-
-				});
-				**/
-
+				// CALL AUTOCOMPLETE EVENTS
+				arrowEvents();
+				clickEvents();
 
 			};
 
@@ -751,9 +704,9 @@
 					var icdList = Object.keys(dataObj);
 					//console.log("fast filter icd list: ", icdList);
 
-					textField.addEventListener("keyup", callback(icdList));
+					// event: on typing in text field 
+					textField.addEventListener("input", callback(icdList));
 
-					getFilteredItems(icdList);
 
 				});
 			}
