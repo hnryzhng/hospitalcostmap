@@ -66,7 +66,6 @@
 				overflow: hidden;
 				border: 1px solid blue;
 				z-index: 99;
-				display: none;
 			}
 
 		</style>
@@ -78,7 +77,7 @@
 		<div id="displayContainer" class="container">
 
 			<div id="inputContainer">
-				<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here">
+				<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here" value="Transplantation of Heart, Allogeneic, Open Approach">
 				<div id="results-display"></div>
 
 				<input type="text" name="address" id="address-box" placeholder="ADDRESS" value="75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798"><br>
@@ -87,7 +86,7 @@
 					<option> Radius </option>
 					<option id="radius_5">5</option>
 					<option id="radius_10">10</option>
-					<option id="radius_50">50</option>
+					<option id="radius_50" selected="selected">50</option>
 					<option id="radius_100">100</option>
 				</select>
 
@@ -114,9 +113,11 @@
 			*/
 			
 			// DEFAULT PARAMS
-			var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
-			var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
-			var radius = 50;
+			//var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
+			//var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
+			//var radius = 50;
+
+
 
 			function makeViz(sortedRecords) {
 				// make bar chart using D3
@@ -220,7 +221,7 @@
 			};
 
 
-			function createMarkers(filteredRecords, map) {
+			function createMarkers(userIcd, filteredRecords, map) {
 
 				function buildMarker(record) {
 					// helper function
@@ -237,6 +238,7 @@
 
 					// create info window					
 					// PROBLEM: userIcd var may not be global
+					// PROBLEM: make sure hospital returned matches the icd
 					var infoContent = `<div class="info-window" id="${hospital}">
 										<p class="info-hospital">${hospital}</p>
 										<p class="user-icd">${userIcd}</p>
@@ -288,7 +290,7 @@
 			};
 
 
-			function calcDistPathTime(addresslatlngObj, filteredRecords, map) {
+			function calcDistPathTime(userIcd, addresslatlngObj, filteredRecords, map) {
 
 				// calc driving distance using Google's Maps API Distance Matrix
 
@@ -335,7 +337,7 @@
 						};
 
 						// create marker for each updated hospital record
-						createMarkers(filteredRecords, map);
+						createMarkers(userIcd, filteredRecords, map);
 
 
 					}
@@ -355,7 +357,7 @@
 			};
 
 
-			function placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList) {
+			function placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList) {
 				// latlngObj => hospitalRecordsList
 				console.log('placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString()); 
 
@@ -381,7 +383,7 @@
 
 				
 				// pass filtered records for further processing
-				calcDistPathTime(addresslatlngObj, filteredRecords, map);
+				calcDistPathTime(userIcd, addresslatlngObj, filteredRecords, map);
 
 				// pass filteredRecords to make bar chart viz
 				//showBarChart(filteredRecords);
@@ -389,7 +391,7 @@
 
 			};			
 
-			function geocodeUserAddress(map, address, radius, hospitalRecordsList) {
+			function geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList) {
 				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
 				geocoder = new google.maps.Geocoder();
 				geocoder.geocode({'address':address}, function(results, status){
@@ -404,7 +406,7 @@
 						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
 						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
 						// addresslatlngObj is already LatLng object
-						placeHospitalMarkers(map, addresslatlngObj, radius, hospitalRecordsList);
+						placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList);
 					} else {
 						console.log('geocodeUserAddress(): there was an error with your address');	
 					};
@@ -412,7 +414,7 @@
 
 			};
 
-			function initMap(address, radius, hospitalRecordsList) {
+			function initMap(userIcd, address, radius, hospitalRecordsList) {
 				// Google Maps Javascript API
 
 				// Google Maps for Node JS
@@ -438,13 +440,13 @@
 					// geolocateUser(map, newDataArray, latlngObj);
 				} else {
 					// grab geocoded user address
-					geocodeUserAddress(map, address, radius, hospitalRecordsList);
+					geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList);
 				};
 
 
 			};
 
-			function grabResponse(address, radius) {
+			function grabResponse(userIcd, address, radius) {
 				// submit through ajax, and return response text
 
 				// express js + ajax		
@@ -458,7 +460,7 @@
 				//$('#text-box').val();
 
 				// submit userIcd (global var)
-				console.log('grabResponse() text input: '+(userIcd.toString()));
+				console.log('grabResponse(userIcd, address, radius) text input: '+(userIcd.toString()));
 
 				function ajaxSuccess(response){
 					console.log('gb ajax success');
@@ -469,13 +471,10 @@
 						console.log('ajax response record:'+JSON.stringify(response[i]));
 					};
 
-
 					var hospitalRecordsList = response;
 
-					// PROBLEM: pass to initmap, or have initMap -> grabResponse -> placeHospitalMarkers?, or within placeHospitalMarkers?
-
 					// pass to initmap for further processing
-					initMap(address, radius, hospitalRecordsList);
+					initMap(userIcd, address, radius, hospitalRecordsList);
 
 				};
 
@@ -485,9 +484,7 @@
 					//console.log("ajax fail:", error);
 
 				};
-				/*
 
-				*/
 				var targetUrl = "http://localhost:3000/get_hospital_records/"+userIcd;
 				$.ajax({
 					type: "GET",
@@ -600,8 +597,7 @@
 							selectResultDOM(childrenList);
 						} else if (event.keyCode == 13) {
 							// enter key
-							//event.preventDefault();	// prevents form from being submitted if "enter" key is pressed
-							//childrenList[index].click();	// simulates click on active item
+							// event in userInputEventListeners
 							submitButton.click();
 						}
 					});
@@ -718,30 +714,39 @@
 
 			function userInputEventListeners() {
 
-				$("#submitButton").on("click", function() {
-
-					// BOOKMARK: update parameters upon change in user input fields
+				function update() {
+					var userIcd = document.getElementsByClassName("active")[0].textContent;
 					var address = $("#address-box").val();
 					var radius = $("#radius-dropdown").val();
-					console.log("event listener address:", address);
-					console.log("event listener radius:", radius);
+					
+					//console.log("event listener target user icd:", userIcd);
+					//console.log("event listener address:", address);
+					//console.log("event listener radius:", radius);
+					//console.log("submitbutton was clicked");
+					
+					// initiate next step
+					grabResponse(userIcd, address, radius);
+					
+				}
 
+				// event: for text box events, refer to autocomplete()
 
-					console.log("submitbutton was clicked");
-					targetUserIcd = document.getElementsByClassName("active")[0].textContent;
-					console.log("target user icd: ", targetUserIcd);
+				// event: on click submit, update
+				$("#submitButton").on("click", update);
 
-					// pass in updated paramters to request
-					//grabResponse();
-				})
 				
-
 			};
 
 			function main() {
 
+				// default parameters
+				var defaultUserIcd = $("#text-box").val();	// geolocate user?
+					defaultAddress = $("#address-box").val();
+					defaultRadius = $("#radius-dropdown").val();
+
+
 				// call grab response upon initial page load
-				grabResponse(address, radius);
+				grabResponse(defaultUserIcd, defaultAddress, defaultRadius);
 
 				searchFunctions();
 
