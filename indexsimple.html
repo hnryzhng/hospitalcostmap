@@ -200,8 +200,6 @@
 				// show top x closest hospitals in descending order of cost
 				// TASK: add event to locate marker when hover over bar?
 
-				// BOOKMARK 3
-
 				// sort records based on cost (desc)
 				function compare(a,b){
 					if (a.cost < b.cost)
@@ -221,8 +219,112 @@
 			};
 
 
+			function makeVizMarkers(sortedMarkerRecords) {
+				// make bar chart using D3
+				// PROBLEM: v3 or v4?
+
+				// remove previous bar chart if available
+				// d3.select("svg").remove();
+
+				// create canvas 
+				var barChartDiv = document.getElementById("bar-chart");
+				var width = barChartDiv.clientWidth;
+				var height = barChartDiv.clientHeight;
+
+
+				var widthScale = d3.scaleLinear()
+									.domain([0, d3.max(sortedRecords.map(function(d){return d.cost;}))])	// create new array based on cost, then find max cost
+									.range([0, width]);
+
+
+				// TASK: create height scale (map num of records to height)
+
+				var canvas = d3.select("#bar-chart").append("svg")
+								.attr("width", width)
+								.attr("height", height)
+									.append("g");
+				// create bars
+				var bars = canvas.selectAll("rect")
+								.data(sortedRecords);
+				// add elements
+				// use block below once user input is incorporated so that bars can be updated
+				bars.enter()
+					.append("rect")
+					.attr("width", function(d,i){return widthScale(d.cost);})
+					.attr("height", 10)
+					.attr("fill", "blue")
+					.attr("y", function(d,i){return(i+1)*20;})
+
+				/*
+
+				// add elements
+				bars.enter()
+					.append("rect")
+
+				// update elements
+				// TASK: add event that opens corresponding marker when on hover or click? add id or class to bar?
+				bars
+					.attr("width", function(d,i){return (d["cost"]);})
+					.attr("height", 10)
+					.attr("fill", "blue")
+					.attr("y", function(d,i){return(i+1)*20;})
+					.on("click", function(){
+						$("#bar-chart").append("<p>clicked on bar</p>")
+					})
+						.append("g");
+				// remove old elements
+				bars.exit().remove();
+				*/
+
+				/*
+				// create bar text
+				// TASK: or pop up on hover (collapsible)
+				var barText = canvas.selectAll("text")
+									.data(sortedRecords);
+
+				barText.enter()
+						.append("text");
+
+				barText
+					.text(function(d){return `$: ${d.cost}`;})
+					.attr("y", function(d,i){return (i+1)*20;})
+					.attr("fill", "black")
+					.attr("font-size", "10px")
+
+				barText.exit().remove();
+				*/
+
+			};
+
+			function showBarChartMarkers(markerRecordList) {
+				// show top x closest hospitals in descending order of cost
+				// TASK: add event to locate marker when hover over bar?
+
+
+				// sort records based on cost (desc)
+				function compare(a,b){
+					if (a[1].cost < b[1].cost)
+						return 1
+					if (a[1].cost > b[1].cost)
+						return -1
+					return 0
+				};
+
+				// TASK: filter top 5?
+				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
+				var sortedMarkerRecords = markerRecordList.sort(compare);
+				console.log("showbarchartmarkers sorted marker records:", sortedMarkerRecords);
+				
+				// BOOKMARK
+				//makeVizMarkers(sortedMarkerRecords);
+
+
+			};
+
+
 			function createMarkers(userIcd, filteredRecords, map) {
 
+				var markerRecordList = [];
 				function buildMarker(record) {
 					// helper function
 					// create marker and info window in function separate from loop so as not to overwrite the marker
@@ -278,6 +380,8 @@
 
 					});
 
+					markerRecordList.push([marker, record]);
+
 				};
 
 
@@ -286,6 +390,9 @@
 					record = filteredRecords[i];
 					buildMarker(record);
 				};
+
+				/** LINK BAR CHART TO MARKER EVENTS **/ 
+				showBarChartMarkers(markerRecordList);
 
 			};
 
