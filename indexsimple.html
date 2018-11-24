@@ -58,12 +58,6 @@
 			#bar-chart {
 				width: 90%;
 				height: 300px;
-				display: none;
-			}
-
-			#test-bar-chart {
-				width: 90%;
-				height: 300px;
 			}
 
 
@@ -102,7 +96,6 @@
 
 			<div id="bar-chart-container">
 				<div id="bar-chart"></div>
-				<div id="test-bar-chart"></div>
 			</div>
 
 		</div>
@@ -127,9 +120,27 @@
 
 
 
-			function makeViz(sortedRecords) {
+			function makeVizMarkers(sortedMarkerRecords, map) {
 				// make bar chart using D3
-				// PROBLEM: v3 or v4?
+
+
+				/**
+				sortedMarkerRecords element:
+				markerRecord = {
+								"markerObjects": {
+									"marker": marker,
+									"infoWindow": infoWindow
+								},
+								"record": record
+							};
+
+				**/
+
+
+				// set Google Maps variables
+				var bounds = new google.maps.LatLngBounds();
+				bounds.extend(map.getCenter());	// include map's center (user address) in bounds 
+
 
 				// remove previous bar chart if available
 				// d3.select("svg").remove();
@@ -141,7 +152,7 @@
 
 
 				var widthScale = d3.scaleLinear()
-									.domain([0, d3.max(sortedRecords.map(function(d){return d.cost;}))])	// create new array based on cost, then find max cost
+									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return d.record.cost;}))])	// create new array based on cost, then find max cost
 									.range([0, width]);
 
 
@@ -153,119 +164,15 @@
 									.append("g");
 				// create bars
 				var bars = canvas.selectAll("rect")
-								.data(sortedRecords);
-				// add elements
-				// use block below once user input is incorporated so that bars can be updated
-				bars.enter()
-					.append("rect")
-					.attr("width", function(d,i){return widthScale(d.cost);})
-					.attr("height", 10)
-					.attr("fill", "blue")
-					.attr("y", function(d,i){return(i+1)*20;})
-
-				/*
-
-				// add elements
-				bars.enter()
-					.append("rect")
-
-				// update elements
-				// TASK: add event that opens corresponding marker when on hover or click? add id or class to bar?
-				bars
-					.attr("width", function(d,i){return (d["cost"]);})
-					.attr("height", 10)
-					.attr("fill", "blue")
-					.attr("y", function(d,i){return(i+1)*20;})
-					.on("click", function(){
-						$("#bar-chart").append("<p>clicked on bar</p>")
-					})
-						.append("g");
-				// remove old elements
-				bars.exit().remove();
-				*/
-
-				/*
-				// create bar text
-				// TASK: or pop up on hover (collapsible)
-				var barText = canvas.selectAll("text")
-									.data(sortedRecords);
-
-				barText.enter()
-						.append("text");
-
-				barText
-					.text(function(d){return `$: ${d.cost}`;})
-					.attr("y", function(d,i){return (i+1)*20;})
-					.attr("fill", "black")
-					.attr("font-size", "10px")
-
-				barText.exit().remove();
-				*/
-
-			};
-
-			function showBarChart(filteredRecords) {
-				// show top x closest hospitals in descending order of cost
-				// TASK: add event to locate marker when hover over bar?
-
-				// sort records based on cost (desc)
-				function compare(a,b){
-					if (a.cost < b.cost)
-						return 1
-					if (a.cost > b.cost)
-						return -1
-					return 0
-				};
-
-				// TASK: filter top 5?
-				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
-				var sortedRecords = filteredRecords.sort(compare);
-				//console.log("bar chart sorted records:", sortedRecords);
-				makeViz(sortedRecords);
-
-
-			};
-
-
-			function makeVizMarkers(sortedMarkerRecords, map) {
-				// make bar chart using D3
-
-				// sortedMarkerRecords: [[markerA, recordA, infoWindowA], ...]]
-				// d[0] = marker, d[1] = record, d[2] = infoWindow for marker
-
-				// set Google Maps variables
-				var bounds = new google.maps.LatLngBounds();
-				bounds.extend(map.getCenter());	// include map's center (user address) in bounds 
-
-
-				// remove previous bar chart if available
-				// d3.select("svg").remove();
-
-				// create canvas 
-				var barChartDiv = document.getElementById("test-bar-chart");
-				var width = barChartDiv.clientWidth;
-				var height = barChartDiv.clientHeight;
-
-
-				var widthScale = d3.scaleLinear()
-									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return d[1].cost;}))])	// create new array based on cost, then find max cost
-									.range([0, width]);
-
-
-				// TASK: create height scale (map num of records to height)
-
-				var canvas = d3.select("#test-bar-chart").append("svg")
-								.attr("width", width)
-								.attr("height", height)
-									.append("g");
-				// create bars
-				var bars = canvas.selectAll("rect")
 								.data(sortedMarkerRecords);
+
+				// BOOKMARK
+				// TASK: update and clear old elements upon updating map
+
 				// add elements
-				// use block below once user input is incorporated so that bars can be updated
 				bars.enter()
 					.append("rect")
-					.attr("width", function(d,i){return widthScale(d[1].cost);})
+					.attr("width", function(d,i){return widthScale(d.record.cost);})
 					.attr("height", 10)
 					.attr("fill", "blue")
 					.attr("y", function(d,i){return(i+1)*20;})
@@ -280,8 +187,8 @@
 					.on("click", function(d) {
 						// event: click each bar highlights marker and opens infobox
 
-						marker = d[0];
-						infoWindow = d[2];
+						marker = d.markerObjects.marker;
+						infoWindow = d.markerObjects.infoWindow;
 
 						// extend bounds to include marker in map view 
 						bounds.extend(marker.position);
@@ -296,7 +203,7 @@
 					});
 
 				// event: clicking on any part of map closes all infoboxes
-				var infoBoxList = sortedMarkerRecords.map(function(d){return d[2];})
+				var infoBoxList = sortedMarkerRecords.map(function(d){return d.markerObjects.infoWindow;})
 				map.addListener("click", function(){
 					for (var i=0; i<infoBoxList.length; i++) {
 						infoBoxList[i].close();
@@ -345,15 +252,23 @@
 			};
 
 			function showBarChartMarkers(markerRecordList, map) {
-				// show top x closest hospitals in descending order of cost
-				// TASK: add event to locate marker when hover over bar?
+				/**
+				markerRecordList element:
+				markerRecord = {
+								"markerObjects": {
+									"marker": marker,
+									"infoWindow": infoWindow
+								},
+								"record": record
+							};
 
+				**/
 
 				// sort records based on cost (desc)
 				function compare(a,b){
-					if (a[1].cost < b[1].cost)
+					if (a.record.cost < b.record.cost)
 						return 1
-					if (a[1].cost > b[1].cost)
+					if (a.record.cost > b.record.cost)
 						return -1
 					return 0
 				};
@@ -428,7 +343,16 @@
 
 					});
 
-					markerRecordList.push([marker, record, infoWindow]);
+					// create record with marker and record objects for use in bar chart
+					var markerRecord = {
+										"markerObjects": {
+											"marker": marker,
+											"infoWindow": infoWindow
+										},
+										"record": record
+									};
+					markerRecordList.push(markerRecord);
+					
 
 				};
 
