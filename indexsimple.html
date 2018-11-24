@@ -162,45 +162,60 @@
 								.attr("width", width)
 								.attr("height", height)
 									.append("g");
-				// create bars
-				var bars = canvas.selectAll("rect")
-								.data(sortedMarkerRecords);
+				update();
 
 				// BOOKMARK
 				// TASK: update and clear old elements upon updating map
+				function update() {
+					// create bars
+					var bars = canvas.selectAll("rect")
+									.remove()
+									.exit()
+									.data(sortedMarkerRecords);
 
-				// add elements
-				bars.enter()
-					.append("rect")
-					.attr("width", function(d,i){return widthScale(d.record.cost);})
-					.attr("height", 10)
-					.attr("fill", "blue")
-					.attr("y", function(d,i){return(i+1)*20;})
-					.on("mouseover", function(d) {
-						// event: on mouseover, highlights bar
-						$(this).attr("fill", "red");
-					})
-					.on("mouseout", function(d){
-						// event: on mouseout, return to original color
-						$(this).attr("fill", "blue");
-					})
-					.on("click", function(d) {
-						// event: click each bar highlights marker and opens infobox
+					// add elements
+					bars.enter()
+						.append("rect")
+						.attr("width", function(d,i){return widthScale(d.record.cost);})
+						.attr("height", 10)
+						.attr("fill", "blue")
+						.attr("y", function(d,i){return(i+1)*20;})
+						.on("mouseover", function(d) {
+							// event: on mouseover, highlights bar
+							$(this).attr("fill", "red");
+							
+							// marker is highlighted
+							marker = d.markerObjects.marker;
+							marker.setAnimation(google.maps.Animation.BOUNCE);
 
-						marker = d.markerObjects.marker;
-						infoWindow = d.markerObjects.infoWindow;
+						})
+						.on("mouseout", function(d){
+							// event: on mouseout, return to original color
+							$(this).attr("fill", "blue");
 
-						// extend bounds to include marker in map view 
-						bounds.extend(marker.position);
-						map.fitBounds(bounds);
+							// marker is de-highlighted
+							marker.setAnimation(null);
+						})
+						.on("click", function(d) {
+							// event: click each bar highlights marker and opens infobox
 
-						// set marker animation highlight
-						marker.setAnimation(google.maps.Animation.BOUNCE);
+							marker = d.markerObjects.marker;
+							infoWindow = d.markerObjects.infoWindow;
 
-						// open infowindow of marker
-						infoWindow.open(map, marker);
+							// extend bounds to include marker in map view 
+							bounds.extend(marker.position);
+							map.fitBounds(bounds);
 
-					});
+							// set marker animation highlight
+							marker.setAnimation(google.maps.Animation.BOUNCE);
+
+							// open infowindow of marker
+							infoWindow.open(map, marker);
+
+						});
+
+					
+				};
 
 				// event: clicking on any part of map closes all infoboxes
 				var infoBoxList = sortedMarkerRecords.map(function(d){return d.markerObjects.infoWindow;})
