@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
 
 	<head>
 
-		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> 			
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+		<!-- D3 -->
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="https://d3js.org/queue.v1.min.js"></script>
+
+		<!--jQuery -->
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>  
+
 		<style>
 
 			#displayContainer {
-				width: 300px;
-				height: 500px;
+				width: 40%;
 				position: fixed;
 				z-index: 100;
-				background-color: white;
 			}
 
 			#inputContainer {
-				border: 1px solid red;
-				position: fixed;
+
 				background-color: white;
 			}
 
@@ -35,31 +42,23 @@
 			};
 
 			#text-box {
-				width: 200px;
+				width: 100%;
 			};
 
 			#results-display {
-				width: 200px;
 				height: 300px;
-				border: 1px solid green;
 			}
 
 			.active {
 				border: 1px solid red;
 			}
 
-			#bar-chart-container {
-				width: 90%;
-				height: 300px;
-				background-color: white;
-				border: 1px solid green;
-			}
 
 			#bar-chart {
-				width: 90%;
+				width: 80%;
 				height: 300px;
-				position: relative;
 				top: 300px;
+				background: white;
 			}
 
 
@@ -67,7 +66,6 @@
 				width: 100%;
 				height: 700px;
 				overflow: hidden;
-				border: 1px solid blue;
 				z-index: 99;
 			}
 
@@ -80,25 +78,32 @@
 		<div id="displayContainer" class="container">
 
 			<div id="inputContainer">
-				<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here" value="Transplantation of Heart, Allogeneic, Open Approach">
-				<div id="results-display"></div>
+				
+				<div class="row">
 
-				<input type="text" name="address" id="address-box" placeholder="ADDRESS" value="75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798"><br>
+					<input type="text" name="address" id="address-box" placeholder="ADDRESS" value="75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798"><br>
 
-				<select id="radius-dropdown">
-					<option> Radius </option>
-					<option id="radius_5">5</option>
-					<option id="radius_10">10</option>
-					<option id="radius_50" selected="selected">50</option>
-					<option id="radius_100">100</option>
-				</select>
+					<select id="radius-dropdown" class="col-sm">
+						<option> Radius </option>
+						<option id="radius_5">5</option>
+						<option id="radius_10">10</option>
+						<option id="radius_50" selected="selected">50</option>
+						<option id="radius_100">100</option>
+					</select>
 
-				<div id="submitButton"></div>
+				</div>
+
+				<div class="row">
+					<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here" value="Transplantation of Heart, Allogeneic, Open Approach">
+					<div id="results-display"></div>
+				</div>
+
+				<a href=#><div id="submitButton" class="row">SUBMIT</div></a>
+				<a href=# id="hideMe" class="row">hide me</a>
 			</div>
 
-			<div id="bar-chart-container">
-				<div id="bar-chart"></div>
-			</div>
+
+			<div id="bar-chart"></div>
 
 		</div>
 
@@ -148,10 +153,9 @@
 				// d3.select("svg").remove();
 
 				// create canvas 
-				var barChartDiv = document.getElementById("bar-chart");
-				var width = barChartDiv.clientWidth;
-				var height = barChartDiv.clientHeight;
-
+				var barChart = $("#bar-chart");
+				var width = barChart.width()*0.8;
+				var height = barChart.height()*0.8;
 
 				var widthScale = d3.scaleLinear()
 									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return d.record.cost;}))])	// create new array based on cost, then find max cost
@@ -227,45 +231,6 @@
 						infoBoxList[i].close();
 					};
 				});
-
-				/*
-
-				// add elements
-				bars.enter()
-					.append("rect")
-
-				// update elements
-				// TASK: add event that opens corresponding marker when on hover or click? add id or class to bar?
-				bars
-					.attr("width", function(d,i){return (d["cost"]);})
-					.attr("height", 10)
-					.attr("fill", "blue")
-					.attr("y", function(d,i){return(i+1)*20;})
-					.on("click", function(){
-						$("#bar-chart").append("<p>clicked on bar</p>")
-					})
-						.append("g");
-				// remove old elements
-				bars.exit().remove();
-				*/
-
-				/*
-				// create bar text
-				// TASK: or pop up on hover (collapsible)
-				var barText = canvas.selectAll("text")
-									.data(sortedRecords);
-
-				barText.enter()
-						.append("text");
-
-				barText
-					.text(function(d){return `$: ${d.cost}`;})
-					.attr("y", function(d,i){return (i+1)*20;})
-					.attr("fill", "black")
-					.attr("font-size", "10px")
-
-				barText.exit().remove();
-				*/
 
 			};
 
@@ -420,7 +385,6 @@
 							var record = filteredRecords[i];
 
 							// for each destination duration, distance, add to record
-							// TASK: IF RECORD'S ADDRESS MATCHES WITH API DESTINATION RECORD ADDRESS, THEN ADD DISTANCE, DURATION TO THE RECORD (LOOK AT DESINATION RECORD STRUCTURE TO EXTRACT INFO)
 
 							var destinationRecords = response.rows[0].elements;
 							//console.log("distance matrix api destination records array: ", destinationRecords);
@@ -619,6 +583,7 @@
 				var submitButton = document.getElementById("submitButton");
 				var index = -1;
 
+
 				function removeActive(childrenList) {
 					for(var i=0;i<childrenList.length;i++){
 						childrenList[i].classList.remove("active");
@@ -627,6 +592,12 @@
 
 				// autocomplete event: click generated list item
 				function clickEvents() {
+
+					document.addEventListener("click", function(){
+							// hide results display if clicking outside of results display
+							resultsDisplay.style.display = "none"; 
+					})
+
 					function addChildClickEvent(selectedChild) {
 						// keep separate from loop to avoid overwriting previous variables in loop; maintain independent namespace
 
@@ -641,11 +612,13 @@
 
 							// upon clicking on a result, text field is assigned value
 							var userIcd = document.getElementsByClassName("active")[0].textContent;
-							textField.value = userIcd; 
+							textField.value = userIcd;
+
+							// hide results display after selection
+							resultsDisplay.style.display = "none"; 
 
 						})
 					}
-
 					
 					resultsDisplay.addEventListener("mouseover", function(event){
 						//console.log("click results display");
@@ -683,6 +656,9 @@
 					
 					textField.addEventListener("keydown", function(event){
 						
+						// display results if previously hidden upon typing
+						resultsDisplay.style.display = "block";
+
 						if (event.keyCode == 38) {
 							// up arrow
 							event.preventDefault();
@@ -697,9 +673,12 @@
 							// enter key
 							// event in userInputEventListeners
 							
-							// upon clicking on a result, text field is assigned value
+							// upon selecting a result, text field is assigned value
 							var userIcd = document.getElementsByClassName("active")[0].textContent;
 							textField.value = userIcd; 
+
+							// hide results display after selection
+							resultsDisplay.style.display = "none";
 
 						}
 					});
@@ -816,12 +795,17 @@
 
 			function userInputEventListeners() {
 
-				// html elements
+				// user input elements
 				userIcdField = $("#text-box");
 				addressField = $("#address-box");
 				radiusField = $("#radius-dropdown");
 				submitButton = $("#submitButton");
 
+				resultsDisplay = $("#results-display");
+
+				// bar chart elements
+				var barChart = $("#bar-chart");
+				var hideMe = $("#hideMe");
 
 				function update() {
 					var userIcd = document.getElementsByClassName("active")[0].textContent;
@@ -838,24 +822,33 @@
 					
 					// initiate next step
 					grabResponse(userIcd, address, radius);
+
 					
 				}
 
 				// event: on click submit, update
 				submitButton.on("click", update);
 
+				// event: for user icd text field, refer to autocomplete()
 
-				// events for user input fields
-				userIcdField.keypress(function(event){
-					if (event.which==13){
-						submitButton.click();
-					}
-				})
 
+				// event: address field
 				addressField.keypress(function(event){
 					if (event.which==13) {
 						submitButton.click();
 					}
+				});
+
+				// event: collapse or show bar chart 
+				hideMe.click(function(){
+					if (barChart.is(":hidden")) {
+						barChart.slideDown()
+						//barChart.show();
+					} else {
+						barChart.slideUp();
+						//barChart.hide();
+					}
+
 				});
 				
 			};
@@ -882,7 +875,13 @@
 			//$(document).ready(main());
 
 		</script>
+		<!-- load main function using Google Maps API -->
 		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rDLKNGLIuCnu9jA6ETfWSoKCRiiafg&libraries=geometry&callback=main"></script>	
+
+		<!-- call Popper, Bootstrap JS -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
 
 	</body>
 
