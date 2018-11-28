@@ -26,7 +26,6 @@
 			}
 
 			#inputContainer {
-
 				background-color: white;
 			}
 
@@ -61,6 +60,11 @@
 				background: white;
 			}
 
+			#starter-block {
+				width: 80%;
+				height: 200px;
+				background: white;
+			}
 
 			#map {
 				width: 100%;
@@ -102,8 +106,18 @@
 				<a href=# id="hideMe" class="row">hide me</a>
 			</div>
 
+			<div id="starter-block">
+				<ul id="starter-list">
+					<li id="appendectomy">Appendectomy</li>
+					<li id="knee-replacement">Knee Replacement (Left)</li>
+					<li id="hip-replacement">Hip Replacement (Left)</li>
+					<li id="stomach">Stomach</li>
+				</ul>
+
+			</div>
 
 			<div id="bar-chart"></div>
+
 
 		</div>
 
@@ -124,7 +138,6 @@
 			// var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			// var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			// var radius = 50;
-
 
 
 			function makeVizMarkers(sortedMarkerRecords, map) {
@@ -256,7 +269,7 @@
 					return 0
 				};
 
-				// TASK: filter top 5?
+				// TASK: filter top 5? 
 				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
 				var sortedMarkerRecords = markerRecordList.sort(compare);
 				//console.log("showbarchartmarkers sorted marker records:", sortedMarkerRecords);
@@ -506,6 +519,11 @@
 			};
 
 			function grabResponse(userIcd, address, radius) {
+				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
+				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
+				// alt way of calc distances: https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
+
+
 				// submit through ajax, and return response text
 
 				// express js + ajax		
@@ -807,8 +825,11 @@
 				var barChart = $("#bar-chart");
 				var hideMe = $("#hideMe");
 
+
+
 				function update() {
-					var userIcd = document.getElementsByClassName("active")[0].textContent;
+					//var userIcd = document.getElementsByClassName("active")[0].textContent;
+					var userIcd = userIcdField.val();
 					var address = addressField.val();
 					var radius = radiusField.val();
 					
@@ -850,8 +871,39 @@
 					}
 
 				});
+
+				function starterEvents() {
+					starterBlockItems = $("ul li");
+					//console.log("starter block:", starterBlockItems.eq(1).text());
+
+					diagnosis2icd = {
+						"Appendectomy": "Acute appendicitis with generalized peritonitis",
+						"Knee Replacement (Left)": "Replacement of Left Knee Joint with Autologous Tissue Substitute, Open Approach", 
+						"Hip Replacement (Left)": "Replacement of Left Hip Joint with Autologous Tissue Substitute, Open Approach",
+						"Stomach": "Bypass Upper Esophagus to Stomach with Autologous Tissue Substitute, Open Approach" 
+					};
+
+					// event: add to each list item
+					starterBlockItems.each(function(i){
+						$(this).click(function(){
+							starterDiagnosis = starterBlockItems.eq(i).text();
+							//console.log("starter list item clicked:", starterDiagnosis);
+							starterIcd = diagnosis2icd[starterDiagnosis];
+							//console.log("starter list item icd:", starterIcd);
+							// assign value to icd input field
+							userIcdField.val(starterIcd);
+							// click submit button
+							submitButton.click();
+						});
+					});
+				};
+
+				starterEvents();
 				
 			};
+
+
+
 
 			function main() {
 
@@ -859,7 +911,6 @@
 				var defaultUserIcd = $("#text-box").val();	// geolocate user?
 					defaultAddress = $("#address-box").val();
 					defaultRadius = $("#radius-dropdown").val();
-
 
 				// call grab response upon initial page load
 				grabResponse(defaultUserIcd, defaultAddress, defaultRadius);
