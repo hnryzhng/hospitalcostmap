@@ -29,6 +29,10 @@
 				background-color: white;
 			}
 
+			.row {
+				width: 100%;
+			}
+
 			#submitButton {
 				background-color: #4CAF50; /* Green */
 				border: none;
@@ -41,7 +45,6 @@
 			};
 
 			#text-box {
-				width: 100%;
 			};
 
 			#results-display {
@@ -97,28 +100,28 @@
 
 	<body>
 
-		<div id="displayContainer" class="container">
+		<div id="displayContainer">
 
-			<div id="inputContainer">
+			<div id="inputContainer" class="container">
 				
 				<div class="row">
-
-					<input type="text" name="address" id="address-box" placeholder="ADDRESS" value="75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798"><br>
-
-					<select id="radius-dropdown" class="col-sm">
-						<option> Radius </option>
-						<option id="radius_5">5</option>
-						<option id="radius_10">10</option>
-						<option id="radius_50" selected="selected">50</option>
-						<option id="radius_100">100</option>
-					</select>
-
-
+					<input type="text" name="address" id="address-box" class="form-control" placeholder="ADDRESS"><br>
 				</div>
 
 				<div class="row">
-					<input type="text" id="text-box" name="ajaxtext" placeholder="Search operation type here" value="Transplantation of Heart, Allogeneic, Open Approach">
+					<input type="text" id="text-box" class="form-control" name="ajaxtext" placeholder="TYPE YOUR MEDICAL PROCEDURE">
 					<div id="results-display"></div>
+				</div>
+
+				<div class="row">
+					<select id="radius-dropdown" class="form-control">
+						<option> Radius </option>
+						<option id="radius_5">5</option>
+						<option id="radius_10" selected="selected">10</option>
+						<option id="radius_50">50</option>
+						<option id="radius_100">100</option>
+					</select>
+
 				</div>
 
 				<a href=#><div id="submitButton" class="row">SUBMIT</div></a>
@@ -130,7 +133,6 @@
 					<li id="appendectomy">Appendectomy</li>
 					<li id="knee-replacement">Knee Replacement (Left)</li>
 					<li id="hip-replacement">Hip Replacement (Left)</li>
-					<li id="stomach">Stomach</li>
 				</ul>
 
 			</div>
@@ -238,7 +240,7 @@
 				bars.enter()
 					.append("rect")
 					.attr("width", function(d,i){return widthScale(makeCostorDist(d));})
-					.attr("height", heightScale.bandwidth()*0.6)
+					.attr("height", 10)
 					.attr("fill", "blue")
 					.attr("y", function(d,i){return heightScale(d.record.hospital);})//(i+1)*20;})
 					.on("mouseover", function(d) {
@@ -955,8 +957,7 @@
 					diagnosis2icd = {
 						"Appendectomy": "Acute appendicitis with generalized peritonitis",
 						"Knee Replacement (Left)": "Replacement of Left Knee Joint with Autologous Tissue Substitute, Open Approach", 
-						"Hip Replacement (Left)": "Replacement of Left Hip Joint with Autologous Tissue Substitute, Open Approach",
-						"Stomach": "Bypass Upper Esophagus to Stomach with Autologous Tissue Substitute, Open Approach" 
+						"Hip Replacement (Left)": "Replacement of Left Hip Joint with Autologous Tissue Substitute, Open Approach"
 					};
 
 					// event: add to each list item
