@@ -52,12 +52,30 @@
 				border: 1px solid red;
 			}
 
+			div.tooltip {
+				position: absolute;
+				text-align: center;
+				width: 300px;
+				height: 28px;
+				padding: 2px;
+				font: 12px sans-serif;
+				background: lightsteelblue;
+				border: 0px;
+				border-radius: 8px;
+				pointer-events: none;
+			}
 
-			#bar-chart {
+			#bar-chart-container {
 				width: 80%;
-				height: 300px;
+				height: 200px;
 				top: 300px;
 				background: white;
+			}
+
+			#bar-chart {
+				height: 100%;
+				background: white;
+
 			}
 
 			#starter-block {
@@ -95,6 +113,7 @@
 						<option id="radius_100">100</option>
 					</select>
 
+
 				</div>
 
 				<div class="row">
@@ -115,9 +134,14 @@
 				</ul>
 
 			</div>
+			<div id="bar-chart-container">
+				<select id="cost-dist-dropdown">
+					<option id="cost_filter" selected="selected">cost</option>
+					<option id="distance_filter">distance</option>
+				</select>
 
-			<div id="bar-chart"></div>
-
+				<div id="bar-chart"></div>
+			</div>
 
 		</div>
 
@@ -143,7 +167,6 @@
 			function makeVizMarkers(sortedMarkerRecords, map) {
 				// make bar chart using D3
 
-
 				/**
 				sortedMarkerRecords element:
 				markerRecord = {
@@ -155,6 +178,16 @@
 							};
 
 				**/
+
+				// display bar order based on cost or distance filter
+				costordist = $("#cost-dist-dropdown").val();
+				function makeCostorDist (d) {
+					if (costordist == "cost") {
+						return d.record.cost;
+					} else if (costordist == "distance") {
+						return d.record.distance.toFixed(0);
+					}
+				}
 
 				console.log("make viz function");
 				// set Google Maps variables
@@ -171,14 +204,24 @@
 				var height = barChart.height()*0.8;
 
 				var widthScale = d3.scaleLinear()
-									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return d.record.cost;}))])	// create new array based on cost, then find max cost
+									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return makeCostorDist(d);}))])	// create new array based on cost, then find max cost
 									.range([0, width]);
 
 
 				// TASK: create height scale (map num of records to height)
-				var heightScale = d3.scaleLinear()
-									.domain([0, sortedMarkerRecords.length])
+				//var heightScale = d3.scaleLinear()
+				//					.domain([0, sortedMarkerRecords.length])
+				//					.range([0, height]);
+
+				var heightScale = d3.scaleBand()
+									.domain(sortedMarkerRecords.map(function(d){return d.record.hospital;}))
 									.range([0, height]);
+
+
+				// add tooltip for displaying hospital and cost/dist info
+				var div = d3.select("body").append("div")
+    							.attr("class", "tooltip")
+    							.style("opacity", 0);
 
 				var canvas = d3.select("#bar-chart").append("svg")
 								.attr("width", width)
@@ -194,14 +237,32 @@
 				// add elements
 				bars.enter()
 					.append("rect")
-					.attr("width", function(d,i){return widthScale(d.record.cost);})
-					.attr("height", 10)
+					.attr("width", function(d,i){return widthScale(makeCostorDist(d));})
+					.attr("height", heightScale.bandwidth()*0.6)
 					.attr("fill", "blue")
-					.attr("y", function(d,i){return(i+1)*20;})
+					.attr("y", function(d,i){return heightScale(d.record.hospital);})//(i+1)*20;})
 					.on("mouseover", function(d) {
 						// event: on mouseover, highlights bar
 						$(this).attr("fill", "red");
 						
+						// tooltip appears
+						div.transition()
+							.duration(200)
+							.style("opacity", .9);	// shows up
+
+						// tooltip content;
+						var hospital = d.record["hospital"];
+						var filterDisplay = null;
+						if (costordist == "distance") {
+							filterDisplay = "direct distance: " + d.record.distance.toFixed(0) + " miles";
+						} else {
+							filterDisplay ="cost: $" + d.record.cost ;
+						};
+
+						div.html(hospital+"</br>"+filterDisplay)
+							.style("left", (d3.event.pageX) + "px")
+							.style("top", (d3.event.pageY - 28) + "px");
+
 						// marker is highlighted
 						marker = d.markerObjects.marker;
 						marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -210,6 +271,11 @@
 					.on("mouseout", function(d){
 						// event: on mouseout, return to original color
 						$(this).attr("fill", "blue");
+
+						// tooltip disappears
+						div.transition()
+							.duration(500)
+							.style("opacity", 0);
 
 						// marker is de-highlighted
 						marker.setAnimation(null);
@@ -247,41 +313,7 @@
 
 			};
 
-			function showBarChartMarkers(markerRecordList, map) {
-				/**
-				markerRecordList element:
-				markerRecord = {
-								"markerObjects": {
-									"marker": marker,
-									"infoWindow": infoWindow
-								},
-								"record": record
-							};
-
-				**/
-
-				// sort records based on cost (desc)
-				function compare(a,b){
-					if (a.record.cost < b.record.cost)
-						return 1
-					if (a.record.cost > b.record.cost)
-						return -1
-					return 0
-				};
-
-				// TASK: filter top 5? 
-				// TASK: add to eventListener() to pop up bar chart after user submits? or only if bar chart is available?
-				var sortedMarkerRecords = markerRecordList.sort(compare);
-				//console.log("showbarchartmarkers sorted marker records:", sortedMarkerRecords);
-				
-				// BOOKMARK
-				makeVizMarkers(sortedMarkerRecords, map);
-
-
-			};
-
-
-			function createMarkers(userIcd, filteredRecords, map) {
+			function createMarkers(userIcd, addresslatlngObj, filteredRecords, map) {
 
 				var markerRecordList = [];
 				function buildMarker(record) {
@@ -290,9 +322,11 @@
 					var hospital = record["hospital"];
 					var address = record["address"];
 					var cost = record["cost"];
+					var distance = record["distance"];
 					var geocodedObj = record["geocoded_address"];
 					var durationDriving = record["duration_driving"];
 					var distanceDriving = record["distance_driving"];
+
 
 					//console.log("create markers record:", record);
 
@@ -358,14 +392,13 @@
 				};
 
 				/** LINK BAR CHART TO MARKER EVENTS **/ 
-				showBarChartMarkers(markerRecordList, map);
+				makeVizMarkers(markerRecordList, map);
 
 			};
 
-
 			function calcDistPathTime(userIcd, addresslatlngObj, filteredRecords, map) {
 
-				// calc driving distance using Google's Maps API Distance Matrix
+				// calc driving distance and time using Google's Maps API Distance Matrix
 
 				// put destination geocoded objects into array 
 				var destinationsArray = [];
@@ -409,22 +442,10 @@
 						};
 
 						// create marker for each updated hospital record
-						createMarkers(userIcd, filteredRecords, map);
-
+						createMarkers(userIcd, addresslatlngObj, filteredRecords, map);
 
 					}
 				});	// end getDistanceMatrix method
-
-			};
-
-
-			function calcMiles(fromGeoCoords, toGeoCoords) {
-				// calc miles between two given geocoord objects
-				var distance = google.maps.geometry.spherical.computeDistanceBetween(fromGeoCoords,toGeoCoords);
-				var distanceMiles = (distance * 0.000621371);
-				//console.log("calc miles:", distanceMiles);
-
-				return distanceMiles;
 
 			};
 
@@ -433,35 +454,34 @@
 				// latlngObj => hospitalRecordsList
 				console.log('placeHospitalMarkers() hospitalRecordsList: ' + hospitalRecordsList.toString()); 
 
-				// filter only hospitals within selected radius
+				// hospitals records already filtered for distance within radius
+
+				// filter for only top specified results due to Distance Matrix API quota
+				var limit = 20;
+				if (sortedHospitalRecordsList.length <= limit) {
+					// if num of records equal to or below limit, then make that the limit
+					// otherwise, stick to limit
+					limit = sortedHospitalRecordsList.length; 
+				};
 
 				var filteredRecords = [];
-				for (var i=0; i<hospitalRecordsList.length; i++) {
-					record = hospitalRecordsList[i];
+				// add geocoord object for each hospital for markers
+				for (var i=0; i<limit; i++) {
+					record = sortedHospitalRecordsList[i];
 					var geocodedAddress = record["geocoded_address"];
 					var hospitalGeocodedObj = new google.maps.LatLng(geocodedAddress["lat"],geocodedAddress["lng"]);	// convert to lat lng object
 
-					var distanceMiles = calcMiles(addresslatlngObj, hospitalGeocodedObj);
-
-					// if hospital coords fall within radius
-					if (distanceMiles <= radius) {
-						// filter record for further processing
-						record["geocoded_obj"] = hospitalGeocodedObj;
-						filteredRecords.push(record)
-					};
-
+					// filter record for further processing
+					record["geocoded_obj"] = hospitalGeocodedObj;
+					filteredRecords.push(record);
 				};
 				//console.log("filtered hospital records: ", filteredRecords);
-
 				
 				// pass filtered records for further processing
 				calcDistPathTime(userIcd, addresslatlngObj, filteredRecords, map);
+				//createMarkers(userIcd, addresslatlngObj, filteredRecords, map);
 
-				// pass filteredRecords to make bar chart viz
-				//showBarChart(filteredRecords);
-
-
-			};			
+			};
 
 			function geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList) {
 				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
@@ -518,7 +538,40 @@
 
 			};
 
-			function grabResponse(userIcd, address, radius) {
+			function sortRecords(hospitalRecordsList, costordist) {
+				// sort records according to cost or distance filter 
+
+				var sortedHospitalRecordsList = []; 
+				function sortCost(a,b) {
+					if (a.cost > b.cost)
+						return 1
+					if (a.cost < b.cost)
+						return -1
+					return 0
+				};
+
+				function sortDistance(a,b) {
+					if (a.distance > b.distance)
+						return 1
+					if (a.distance < b.distance)
+						return -1
+					return 0
+				};
+
+				if (costordist == "cost") {
+					sortedHospitalRecordsList = hospitalRecordsList.sort(sortCost);
+				} else if (costordist == "distance") {
+					sortedHospitalRecordsList = hospitalRecordsList.sort(sortDistance);
+				};
+
+				console.log("Cost or Dist:", costordist);
+				console.log(sortedHospitalRecordsList);
+
+
+				return sortedHospitalRecordsList;
+			}
+
+			function grabResponse(userIcd, address, radius, costordist="cost") {
 				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
 				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
 				// alt way of calc distances: https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
@@ -550,8 +603,10 @@
 
 					var hospitalRecordsList = response;
 
+					sortedHospitalRecordsList = sortRecords(hospitalRecordsList, costordist);
+
 					// pass to initmap for further processing
-					initMap(userIcd, address, radius, hospitalRecordsList);
+					initMap(userIcd, address, radius, sortedHospitalRecordsList);
 
 				};
 
@@ -562,14 +617,32 @@
 
 				};
 
-				var targetUrl = "http://localhost:3000/get_hospital_records/"+userIcd;
-				$.ajax({
-					type: "GET",
-					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
-					data: JSON.stringify(userIcd),	// use module for security
-					success: ajaxSuccess, 
-					error: ajaxFail
-				});	
+				// send user parameters to backend for processing
+				geocoder = new google.maps.Geocoder();	// convert user address to geocoords
+				geocoder.geocode({'address':address}, function(results, status){
+					if (status === 'OK') {
+						var geocoords = results[0].geometry.location;
+							
+					
+						var userObj = {
+										"userIcd": userIcd,
+										"geocoords": geocoords,
+										"radius": radius
+									}
+
+						var targetUrl = "http://localhost:3000/get_hospital_records_test/"+JSON.stringify(userObj);
+						$.ajax({
+							type: "GET",
+							url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
+							data: JSON.stringify(userObj),	// TASK: use module for security
+							success: ajaxSuccess, 
+							error: ajaxFail
+						});	
+					} else {
+						console.log('grabResponse: there was an error locating your address');	
+					}
+
+				});
 			};
 
 
@@ -580,9 +653,6 @@
 				autocomplete feature:
 				https://www.w3schools.com/howto/howto_js_autocomplete.asp
 				detecting which element was clicked with jQuery
-
-				simple version
-				first hook up to userIcd parameter in grabResponse through on click of list item using mouse				
 
 				pseudo-code:
 				-on press of down or up arrow in text-box
@@ -817,12 +887,13 @@
 				userIcdField = $("#text-box");
 				addressField = $("#address-box");
 				radiusField = $("#radius-dropdown");
+				costdistField = $("#cost-dist-dropdown");
 				submitButton = $("#submitButton");
 
 				resultsDisplay = $("#results-display");
 
 				// bar chart elements
-				var barChart = $("#bar-chart");
+				var barChartDiv = $("#bar-chart-container");
 				var hideMe = $("#hideMe");
 
 
@@ -832,6 +903,7 @@
 					var userIcd = userIcdField.val();
 					var address = addressField.val();
 					var radius = radiusField.val();
+					var costordist = costdistField.val();
 					
 					//console.log("event listener target user icd:", userIcd);
 					//console.log("event listener address:", address);
@@ -842,7 +914,7 @@
 					d3.select("svg").remove(); 
 					
 					// initiate next step
-					grabResponse(userIcd, address, radius);
+					grabResponse(userIcd, address, radius, costordist);
 
 					
 				}
@@ -860,13 +932,17 @@
 					}
 				});
 
+				costdistField.on("change", function(){
+					submitButton.click();
+				})
+
 				// event: collapse or show bar chart 
 				hideMe.click(function(){
-					if (barChart.is(":hidden")) {
-						barChart.slideDown()
+					if (barChartDiv.is(":hidden")) {
+						barChartDiv.slideDown()
 						//barChart.show();
 					} else {
-						barChart.slideUp();
+						barChartDiv.slideUp();
 						//barChart.hide();
 					}
 

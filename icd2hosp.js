@@ -3,15 +3,17 @@
 // input: string of user's diagnosis or disease
 // output: list of matching hospital records
 
-// load data maps
+// load modules
 var path = require('path');
 var fs = require('fs');
+var cd = require(path.join(__dirname + '/calcDistance.js'));
 
+// load data maps
 var icd2drgcode = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt')));	// fs reads file sync, then JSON.parse turns into object
 var drgcode2name = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/drgCode2Name.txt')));
 var drg2hospitals = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/drg2hospitals.txt')));
 
-function icd2hosp(usericd) {
+function icd2hosp(usericd, userGeoCoords, userRadius) {
 	var hospitalRecordsList = [];	// list of hospitals to be returned
 
 	// if drg names (inpatient 2016) cannot be found given drg code (cms website), then alert user
@@ -43,10 +45,19 @@ function icd2hosp(usericd) {
 
 					for (var j=0; j<drgHospitalsList.length; j++) {
 						var hospitalRecord = drgHospitalsList[j];
-						hospitalRecordsList.push(hospitalRecord);
-						console.log("icd2hosp usericd:", usericd);
-						console.log("icd2hosp hospital record:", hospitalRecord);
-					};
+
+						var hospitalGeoCoords = hospitalRecord["geocoded_address"];
+						var distance =  cd(userGeoCoords, hospitalGeoCoords);
+						if (distance <= userRadius) {
+							// if distance between user and hospital is equal to/less than specified radius, add hospital record 
+							hospitalRecord["distance"] = distance;	// add distance to hospital record;
+							hospitalRecordsList.push(hospitalRecord);
+							console.log("icd2hosp usericd:", usericd);
+							console.log("icd2hosp hospital record added:", hospitalRecord);
+							
+						} else {	
+							console.log("hospital record not within radius:", hospitalRecord)
+					};	};
 
 				} else {
 					
