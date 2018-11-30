@@ -1,0 +1,35 @@
+﻿ICD-10 Codes
+
+
+Knee replacement
+Arthroplasty knee
+Coding List http://www.floridahealthfinder.gov/Researchers/Reference/Methodology/ICDCodes.aspx
+DRG: 461, 462, 469, 470
+Sample ICD: 
+Replacement of Left Knee Joint with Autologous Tissue Substitute, Open Approach
+
+Angioplasty
+Percutaneous coronary angioplasty (PTCA)
+Coding info: https://www.3mhisinsideangle.com/blog-post/what-no-map-can-tell-you-about-icd-10-coronary-angioplasty-and-ms-drgs-part-2/ 
+ 
+Hip replacement
+Hip replacement, total and partial
+DRG: 461, 462, 469, 470
+Sample ICD: Replacement of Left Hip Joint with Autologous Tissue Substitute, Open Approach
+ 
+Spinal fusion
+""
+ 
+Gallbladder removal
+Cholecystectomy and common duct exploration
+ 
+Hysterectomy
+""
+ 
+Appendectomy
+""
+ICD: Acute appendicitis with generalized peritonitis
+ 
+Heart bypass (CABS)
+Coronary artery bypass graft (CABG)
+Coding info: http://www.miramedgs.com/web/58-the-code-newsletter/mmgs-the-code-spring-2017-issue/678-coronary-artery-bypass-graft-an-icd-10-pcs-approach
