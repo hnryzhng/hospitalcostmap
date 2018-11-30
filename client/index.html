@@ -10,23 +10,22 @@
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-		<!-- D3 -->
-		<script src="https://d3js.org/d3.v4.min.js"></script>
-		<script src="https://d3js.org/queue.v1.min.js"></script>
 
 		<!--jQuery -->
 		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>  
 
+
 		<style>
 
 			#displayContainer {
-				width: 40%;
+				width: 32%;
 				position: fixed;
 				z-index: 100;
 			}
 
 			#inputContainer {
 				background-color: white;
+				padding: 20px 20px 20px 50px;
 			}
 
 			.row {
@@ -44,15 +43,25 @@
 				font-size: 16px;
 			};
 
-			#text-box {
-			};
 
 			#results-display {
-				height: 300px;
+				height: 100px;
+				overflow-y: scroll;
+			}
+
+			.result {
+				/* list items */ 
+				border-top: 1px solid #f4f4f4;
+				border-bottom: 1px solid #f4f4f4;
+				padding: 5px 10px 5px 10px;
+				list-style-type: none;	/* no bullets */
 			}
 
 			.active {
+				/* active result list item */
 				border: 1px solid red;
+				background-color: DodgerBlue;
+				color: white;
 			}
 
 			div.tooltip {
@@ -69,27 +78,61 @@
 			}
 
 			#bar-chart-container {
-				width: 80%;
+				width: 80%;	
 				height: 200px;
-				top: 300px;
+				margin-top: 10px;
 				background: white;
+				display: none;
 			}
 
 			#bar-chart {
-				height: 100%;
+				width: 100%;
+				height: 60%;
 				background: white;
 
+			}
+
+			#hideMe:after {
+				content: "\00d7";	/* render X for exit icon */
+				font-size: 1.2em;
+				float: right;
+			}
+
+			#cost-dist-filter-block {
+				padding-top: 10px;
+				margin-bottom: 10px;
 			}
 
 			#starter-block {
 				width: 80%;
-				height: 200px;
+				height: 300px;
+				padding: 10px 20px 5px 20px;
+				margin-top: 50px;
 				background: white;
+			}
+
+			#starter-text {
+				font-size: 14px;
+			}
+
+			#hide-starter:after {
+				content: "\00d7";	/* render X for exit icon */
+				font-size: 1.2em;
+				float: right;
+			}
+
+			#methodology-link {
+				font-size: 10px;
+			}
+
+			#source-description {
+				font-size: 10px;
+				font-style: italic;
 			}
 
 			#map {
 				width: 100%;
-				height: 700px;
+				height: 600px;
 				overflow: hidden;
 				z-index: 99;
 			}
@@ -114,10 +157,10 @@
 				</div>
 
 				<div class="row">
-					<select id="radius-dropdown" class="form-control">
-						<option> Radius </option>
+					<select id="radius-dropdown" class="form-control" placeholder="radius">
+						<option> DISTANCE (miles) </option>
 						<option id="radius_5">5</option>
-						<option id="radius_10" selected="selected">10</option>
+						<option id="radius_10">10</option>
 						<option id="radius_50">50</option>
 						<option id="radius_100">100</option>
 					</select>
@@ -125,24 +168,40 @@
 				</div>
 
 				<a href=#><div id="submitButton" class="row">SUBMIT</div></a>
-				<a href=# id="hideMe" class="row">hide me</a>
+				
 			</div>
 
-			<div id="starter-block">
-				<ul id="starter-list">
-					<li id="appendectomy">Appendectomy</li>
-					<li id="knee-replacement">Knee Replacement (Left)</li>
-					<li id="hip-replacement">Hip Replacement (Left)</li>
-				</ul>
 
-			</div>
-			<div id="bar-chart-container">
-				<select id="cost-dist-dropdown">
-					<option id="cost_filter" selected="selected">cost</option>
-					<option id="distance_filter">distance</option>
-				</select>
+			<div id="bar-chart-container" class="container">
+				
+				<div id="cost-dist-filter-block">
+
+					<a href=#><div id="hideMe"></div></a>
+				
+					Sort By 
+					<select id="cost-dist-dropdown">
+						<option id="cost_filter" selected="selected">cost</option>
+						<option id="distance_filter">distance</option>
+					</select>
+				</div>
 
 				<div id="bar-chart"></div>
+
+			</div>
+
+
+			<div id="starter-block">
+				<a href=#><div id="hide-starter"></div></a>
+				<h4>Getting Started</h4>
+				<p id="starter-text">Look at the costs of medical operations at hospitals near you. If you don't have a specific procedure in mind, type in your city or address, and choose one below.</p>
+
+				<ul id="starter-list">
+					<li id="appendectomy"><a href=#>Appendectomy</a></li>
+					<li id="knee-replacement"><a href=#>Knee Replacement (Left)</a></li>
+					<li id="hip-replacement"><a href=#>Hip Replacement (Left)</a></li>
+				</ul>
+				<a href=# id="methodology-link">Methodology</a>
+				<p id="source-description">Data: Centers for Medicare and Medicaid Services</a>
 			</div>
 
 		</div>
@@ -204,8 +263,8 @@
 
 				// create canvas 
 				var barChart = $("#bar-chart");
-				var width = barChart.width()*0.8;
-				var height = barChart.height()*0.8;
+				var width = barChart.width() * 0.8;
+				var height = barChart.height() * 0.8;
 
 				var widthScale = d3.scaleLinear()
 									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return makeCostorDist(d);}))])	// create new array based on cost, then find max cost
@@ -312,6 +371,10 @@
 			};
 
 			function createMarkers(userIcd, addresslatlngObj, filteredRecords, map) {
+				
+				// bounds: create bounds object to get markers into view
+				var bounds = new google.maps.LatLngBounds();
+				bounds.extend(map.getCenter());	// include map's center (user address) in bounds 
 
 				var markerRecordList = [];
 				function buildMarker(record) {
@@ -330,8 +393,6 @@
 
 
 					// create info window					
-					// PROBLEM: userIcd var may not be global
-					// PROBLEM: make sure hospital returned matches the icd
 					var infoContent = `<div class="info-window" id="${hospital}">
 										<p class="info-hospital">${hospital}</p>
 										<p class="user-icd">${userIcd}</p>
@@ -356,6 +417,10 @@
 					});
 
 					//console.log("marker hospital label:", hospital)
+
+					// bounds: extend to current marker
+					bounds.extend(marker.position);
+					
 
 					// event: info window on click
 					marker.addListener("click", function() {
@@ -387,10 +452,17 @@
 				for (var i=0; i<filteredRecords.length; i++) {
 					record = filteredRecords[i];
 					buildMarker(record);
+
 				};
+
+				// bounds: reposition map to fit all markers
+				map.fitBounds(bounds);
+
 
 				/** LINK BAR CHART TO MARKER EVENTS **/ 
 				makeVizMarkers(markerRecordList, map);
+
+
 
 			};
 
@@ -498,16 +570,14 @@
 							map: map
 						})
 
-						console.log("sendthrough boolean:", sendThrough);
-
+						// if set to true, then comes from update(), so place hospital markers
 						if (sendThrough == true) {
-							// if set to true, then from setMap(), so place hospital markers
 							grabResponse(userIcd, address, radius, addresslatlngObj, map);
 						}
 
 					}, function(){
 						console.log("geolocation error: get position has failed");
-						alert("Sorry. Please type in your city or specific address.");
+						alert("We've failed to get your location. Please type in your city or specific address.");
 					});
 
 				} else {
@@ -544,6 +614,22 @@
 			};
 
 
+			function setRadiusZoom(radius) {
+				// set zoom level based on radius 
+				rad2zoom = {
+					"": 12, 
+					5: 11,
+					10: 10,
+					50: 8,
+					100: 7
+				};
+
+				zoom = rad2zoom[radius];
+
+				return zoom;
+			}
+
+
 			function initMap(userIcd="", address="", radius="", sendThrough=false) {
 				// Google Maps Javascript API
 
@@ -553,7 +639,7 @@
 
 				// initialize map
 				var map = new google.maps.Map(document.getElementById("map"),{
-					zoom: 9,
+					zoom: 8,
 					center: startLatLngObj
 				});
 
@@ -824,7 +910,7 @@
 
 				// define variables, functions
 				var filteredList = [];
-				var maxDisplay = 3;
+				var maxDisplay = 20;
 				var textField = document.querySelector("#text-box");
 				//textField.defaultValue = "Type in a type of surgery";	// set default value, because filter will return all results given an empty string
 				var resultsDisplay = document.querySelector("#results-display");
@@ -931,6 +1017,9 @@
 				var barChartDiv = $("#bar-chart-container");
 				var hideMe = $("#hideMe");
 
+				// starter block elements
+				var starterBlock = $("#starter-block");
+				var hideStarter = $("#hide-starter");
 
 
 				function update() {
@@ -945,8 +1034,9 @@
 					//console.log("event listener radius:", radius);
 					//console.log("submitbutton was clicked");
 
-					// clear D3 bar chart canv	as
-					d3.select("svg").remove(); 
+					// bar chart events upon update
+					d3.select("svg").remove();	// clear D3 bar chart canvas
+					barChartDiv.slideDown();	// slide down bar chart
 					
 					// initiate next step
 					initMap(userIcd, address, radius, true);	// sendThrough set to true so that geolocate can go through to grab response
@@ -982,6 +1072,12 @@
 
 				});
 
+				// event: close starter block
+				hideStarter.click(function(){
+					starterBlock.hide();
+				})
+
+
 				function starterEvents() {
 					starterBlockItems = $("ul li");
 					//console.log("starter block:", starterBlockItems.eq(1).text());
@@ -1008,7 +1104,7 @@
 				};
 
 				starterEvents();
-				
+					
 			};
 
 
@@ -1033,6 +1129,11 @@
 		<!-- call Popper, Bootstrap JS -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+		<!-- D3 -->
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="https://d3js.org/queue.v1.min.js"></script>
+
 
 
 	</body>
