@@ -482,15 +482,7 @@
 			};
 
 
-			function geolocateUserTest(userIcd="", address="", radius="", sendThrough=false) {
-
-				// developer-specified starting point
-				startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
-				var map = new google.maps.Map(document.getElementById("map"),{
-					zoom: 9,
-					center: startLatLngObj
-				});
-
+			function geolocateUser(map, userIcd="", address="", radius="", sendThrough=false) {
 
 				if (navigator.geolocation) {
 					navigator.geolocation.getCurrentPosition(function(position) {
@@ -506,165 +498,81 @@
 							map: map
 						})
 
+						console.log("sendthrough boolean:", sendThrough);
 
 						if (sendThrough == true) {
 							// if set to true, then from setMap(), so place hospital markers
-							grabResponseTest(userIcd, address, radius, addresslatlngObj, map);
+							grabResponse(userIcd, address, radius, addresslatlngObj, map);
 						}
 
 					}, function(){
 						console.log("geolocation error: get position has failed");
-						alert("We couldn't locate you. Please type in your city or specific address.");
+						alert("Sorry. Please type in your city or specific address.");
 					});
 
 				} else {
 					console.log("geolocation error: denied by user");
+					
 				};
 
 			};
 
-			function geolocateUser(userIcd="", address="", radius="", hospitalRecordsList="", sendThrough=false) {
 
-				// developer-specified starting point
+
+			function geocodeUserAddress(map, userIcd, address, radius) {
+				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
+				geocoder = new google.maps.Geocoder();
+				geocoder.geocode({'address':address}, function(results, status){
+					if (status === 'OK') {
+						var addresslatlngObj = results[0].geometry.location;
+						map.setCenter(addresslatlngObj);
+						new google.maps.Marker({
+							position: addresslatlngObj,
+							map: map
+						});
+
+						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
+						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
+						// addresslatlngObj is already LatLng object
+						grabResponse(userIcd, address, radius, addresslatlngObj, map)
+
+					} else {
+						console.log('geocodeUserAddress(): there was an error with your address');	
+					};
+				});
+
+			};
+
+
+			function initMap(userIcd="", address="", radius="", sendThrough=false) {
+				// Google Maps Javascript API
+
+
+				// developed-specified starting point
 				startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
+
+				// initialize map
 				var map = new google.maps.Map(document.getElementById("map"),{
 					zoom: 9,
 					center: startLatLngObj
 				});
 
-
-				if (navigator.geolocation) {
-					navigator.geolocation.getCurrentPosition(function(position) {
-						addresslatlngObj = {
-							"lat": position.coords.latitude,
-							"lng": position.coords.longitude
-						}
-						
-						map.setCenter(addresslatlngObj);
-						
-						new google.maps.Marker({
-							position: addresslatlngObj,
-							map: map
-						})
-
-
-						if (sendThrough == true) {
-							// if set to true, then from setMap(), so place hospital markers
-							placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList);
-						}
-
-					}, function(){
-						console.log("geolocation error: get position has failed");
-						alert("We couldn't locate you. Please type in your city or specific address.");
-					});
-
-				} else {
-					console.log("geolocation error: denied by user");
-					alert("We couldn't locate you. Please type in your city or specific address.");
-				};
-
-			};
-
-			function geocodeUserAddressTest(map, userIcd, address, radius) {
-				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
-				geocoder = new google.maps.Geocoder();
-				geocoder.geocode({'address':address}, function(results, status){
-					if (status === 'OK') {
-						var addresslatlngObj = results[0].geometry.location;
-						map.setCenter(addresslatlngObj);
-						new google.maps.Marker({
-							position: addresslatlngObj,
-							map: map
-						});
-
-						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
-						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
-						// addresslatlngObj is already LatLng object
-						grabResponseTest(userIcd, address, radius, addresslatlngObj, map)
-
-					} else {
-						console.log('geocodeUserAddress(): there was an error with your address');	
-					};
-				});
-
-			};
-
-			function geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList) {
-				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
-				geocoder = new google.maps.Geocoder();
-				geocoder.geocode({'address':address}, function(results, status){
-					if (status === 'OK') {
-						var addresslatlngObj = results[0].geometry.location;
-						map.setCenter(addresslatlngObj);
-						new google.maps.Marker({
-							position: addresslatlngObj,
-							map: map
-						});
-
-						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
-						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
-						// addresslatlngObj is already LatLng object
-						placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList);
-					} else {
-						console.log('geocodeUserAddress(): there was an error with your address');	
-					};
-				});
-
-			};
-
-			function initMapTest(userIcd, address, radius) {
-				// Google Maps Javascript API
-
 				// starting position
 				if (address === "") {
 					// geolocate user if no address specified
 
-					geolocateUserTest(userIcd, address, radius, sendThrough=true);
+					geolocateUser(map, userIcd, address, radius, sendThrough);
 
 				} else {
 					// user specifies input address
 
-					// developed-specified starting point
-					startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
-
-					// initialize map
-					var map = new google.maps.Map(document.getElementById("map"),{
-						zoom: 9,
-						center: startLatLngObj
-					});
 					
 					// grab geocoded user address
-					geocodeUserAddressTest(map, userIcd, address, radius);
+					geocodeUserAddress(map, userIcd, address, radius);
 				};
 
 			};
 
-			function initMap(userIcd, address, radius, hospitalRecordsList=[]) {
-				// Google Maps Javascript API
-
-				// starting position
-				if (address === "") {
-					// geolocate user if no address specified
-
-					geolocateUser(userIcd, address, radius, hospitalRecordsList, sendThrough=true);
-
-				} else {
-					// user specifies input address
-
-					// developed-specified starting point
-					startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
-
-					// initialize map
-					var map = new google.maps.Map(document.getElementById("map"),{
-						zoom: 9,
-						center: startLatLngObj
-					});
-					
-					// grab geocoded user address
-					geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList);
-				};
-
-			};
 
 			function sortRecords(hospitalRecordsList, costordist) {
 				// sort records according to cost or distance filter 
@@ -699,7 +607,7 @@
 				return sortedHospitalRecordsList;
 			}
 
-			function grabResponseTest(userIcd, address, radius, addresslatlngObj, map) {
+			function grabResponse(userIcd, address, radius, addresslatlngObj, map) {
 				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
 				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
 				// alt way of calc distances: https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
@@ -770,88 +678,6 @@
 					error: ajaxFail
 				});	
 					
-			};
-
-
-
-			function grabResponse(userIcd, address, radius, costordist="cost") {
-				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
-				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
-				// alt way of calc distances: https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
-
-
-				// submit through ajax, and return response text
-
-				// express js + ajax		
-				// https://medium.freecodecamp.org/getting-off-the-ground-with-expressjs-89ada7ef4e59
-
-				// good example: https://gist.github.com/diorahman/1520485
-				
-				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
-
-				
-				//$('#text-box').val();
-
-				// submit userIcd (global var)
-				console.log('grabResponse(userIcd, address, radius) text input: '+(userIcd.toString()));
-
-				function ajaxSuccess(response){
-					console.log('gb ajax success');
-					
-					console.log('ajax response data:'+JSON.stringify(response));
-					
-					for (var i=0; i<response.length; i++) {
-						console.log('ajax response record:'+JSON.stringify(response[i]));
-					};
-
-					var hospitalRecordsList = response;
-
-					if (response=="") {
-						alert('There is no "' + userIcd + '" in your specified area. Try increasing the area of your search.');
-					} else {
-
-						// sort hospital records according to filter for cost or distance
-						sortedHospitalRecordsList = sortRecords(hospitalRecordsList, costordist);
-
-						// pass to initmap for further processing
-						initMap(userIcd, address, radius, sortedHospitalRecordsList);
-					};
-
-				};
-
-				function ajaxFail(error){
-					console.log('gb ajax failure');
-					console.log('ajax error: '+JSON.stringify(error));
-					//console.log("ajax fail:", error);
-
-				};
-
-				// send user parameters to backend for processing
-				geocoder = new google.maps.Geocoder();	// convert user address to geocoords
-				geocoder.geocode({'address':address}, function(results, status){
-					if (status === 'OK') {
-						var geocoords = results[0].geometry.location;
-							
-					
-						var userObj = {
-										"userIcd": userIcd,
-										"geocoords": geocoords,
-										"radius": radius
-									}
-
-						var targetUrl = "http://localhost:3000/get_hospital_records_test/"+JSON.stringify(userObj);
-						$.ajax({
-							type: "GET",
-							url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
-							data: JSON.stringify(userObj),	// TASK: use module for security
-							success: ajaxSuccess, 
-							error: ajaxFail
-						});	
-					} else {
-						console.log('grabResponse: there was an error locating your address');	
-					}	
-
-				});
 			};
 
 
@@ -1119,13 +945,11 @@
 					//console.log("event listener radius:", radius);
 					//console.log("submitbutton was clicked");
 
-					// clear D3 bar chart canvas
+					// clear D3 bar chart canv	as
 					d3.select("svg").remove(); 
 					
 					// initiate next step
-					// grabResponse(userIcd, address, radius, costordist);
-					
-					initMapTest(userIcd, address, radius);
+					initMap(userIcd, address, radius, true);	// sendThrough set to true so that geolocate can go through to grab response
 					
 				}
 
@@ -1190,16 +1014,8 @@
 
 			function main() {
 
-				// default parameters
-				var defaultUserIcd = $("#text-box").val();	// geolocate user?
-					defaultAddress = $("#address-box").val();
-					defaultRadius = $("#radius-dropdown").val();
-
-				initMapTest(defaultUserIcd, defaultAddress, defaultRadius);
-				//geolocateUser();
-				//initMap(defaultUserIcd, defaultAddress, defaultRadius);
-				//grabResponse(defaultUserIcd, defaultAddress, defaultRadius);
-
+				initMap();
+				
 				searchFunctions();
 
 				userInputEventListeners();
