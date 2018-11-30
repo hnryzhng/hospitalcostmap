@@ -164,7 +164,7 @@
 			// var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			// var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			// var radius = 50;
-
+			var map;
 
 			function makeVizMarkers(sortedMarkerRecords, map) {
 				// make bar chart using D3
@@ -180,6 +180,8 @@
 							};
 
 				**/
+
+				console.log("makevizmarkers sorter marker records:", sortedMarkerRecords);
 
 				// display bar order based on cost or distance filter
 				costordist = $("#cost-dist-dropdown").val();
@@ -208,12 +210,6 @@
 				var widthScale = d3.scaleLinear()
 									.domain([0, d3.max(sortedMarkerRecords.map(function(d){return makeCostorDist(d);}))])	// create new array based on cost, then find max cost
 									.range([0, width]);
-
-
-				// TASK: create height scale (map num of records to height)
-				//var heightScale = d3.scaleLinear()
-				//					.domain([0, sortedMarkerRecords.length])
-				//					.range([0, height]);
 
 				var heightScale = d3.scaleBand()
 									.domain(sortedMarkerRecords.map(function(d){return d.record.hospital;}))
@@ -256,7 +252,7 @@
 						var hospital = d.record["hospital"];
 						var filterDisplay = null;
 						if (costordist == "distance") {
-							filterDisplay = "direct distance: " + d.record.distance.toFixed(0) + " miles";
+							filterDisplay = "direct distance: " + d.record.distance.toFixed(1) + " miles";
 						} else {
 							filterDisplay ="cost: $" + d.record.cost ;
 						};
@@ -459,11 +455,11 @@
 				// hospitals records already filtered for distance within radius
 
 				// filter for only top specified results due to Distance Matrix API quota
-				var limit = 20;
-				if (sortedHospitalRecordsList.length <= limit) {
+				var limit = 10;
+				if (hospitalRecordsList.length <= limit) {
 					// if num of records equal to or below limit, then make that the limit
 					// otherwise, stick to limit
-					limit = sortedHospitalRecordsList.length; 
+					limit = hospitalRecordsList.length; 
 				};
 
 				var filteredRecords = [];
@@ -473,7 +469,7 @@
 					var geocodedAddress = record["geocoded_address"];
 					var hospitalGeocodedObj = new google.maps.LatLng(geocodedAddress["lat"],geocodedAddress["lng"]);	// convert to lat lng object
 
-					// filter record for further processing
+					// filter record for further processings
 					record["geocoded_obj"] = hospitalGeocodedObj;
 					filteredRecords.push(record);
 				};
@@ -482,6 +478,114 @@
 				// pass filtered records for further processing
 				calcDistPathTime(userIcd, addresslatlngObj, filteredRecords, map);
 				//createMarkers(userIcd, addresslatlngObj, filteredRecords, map);
+
+			};
+
+
+			function geolocateUserTest(userIcd="", address="", radius="", sendThrough=false) {
+
+				// developer-specified starting point
+				startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
+				var map = new google.maps.Map(document.getElementById("map"),{
+					zoom: 9,
+					center: startLatLngObj
+				});
+
+
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(function(position) {
+						addresslatlngObj = {
+							"lat": position.coords.latitude,
+							"lng": position.coords.longitude
+						}
+						
+						map.setCenter(addresslatlngObj);
+						
+						new google.maps.Marker({
+							position: addresslatlngObj,
+							map: map
+						})
+
+
+						if (sendThrough == true) {
+							// if set to true, then from setMap(), so place hospital markers
+							grabResponseTest(userIcd, address, radius, addresslatlngObj, map);
+						}
+
+					}, function(){
+						console.log("geolocation error: get position has failed");
+						alert("We couldn't locate you. Please type in your city or specific address.");
+					});
+
+				} else {
+					console.log("geolocation error: denied by user");
+				};
+
+			};
+
+			function geolocateUser(userIcd="", address="", radius="", hospitalRecordsList="", sendThrough=false) {
+
+				// developer-specified starting point
+				startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
+				var map = new google.maps.Map(document.getElementById("map"),{
+					zoom: 9,
+					center: startLatLngObj
+				});
+
+
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(function(position) {
+						addresslatlngObj = {
+							"lat": position.coords.latitude,
+							"lng": position.coords.longitude
+						}
+						
+						map.setCenter(addresslatlngObj);
+						
+						new google.maps.Marker({
+							position: addresslatlngObj,
+							map: map
+						})
+
+
+						if (sendThrough == true) {
+							// if set to true, then from setMap(), so place hospital markers
+							placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList);
+						}
+
+					}, function(){
+						console.log("geolocation error: get position has failed");
+						alert("We couldn't locate you. Please type in your city or specific address.");
+					});
+
+				} else {
+					console.log("geolocation error: denied by user");
+					alert("We couldn't locate you. Please type in your city or specific address.");
+				};
+
+			};
+
+			function geocodeUserAddressTest(map, userIcd, address, radius) {
+				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
+				geocoder = new google.maps.Geocoder();
+				geocoder.geocode({'address':address}, function(results, status){
+					if (status === 'OK') {
+						var addresslatlngObj = results[0].geometry.location;
+						map.setCenter(addresslatlngObj);
+						new google.maps.Marker({
+							position: addresslatlngObj,
+							map: map
+						});
+
+						//$("#consoleDisplay").append("<p>"+'user address input: ' + JSON.stringify(address)+"</p>");
+						//$("#consoleDisplay").append("<p>"+'geocoded address lat lng: ' + JSON.stringify(addresslatlngObj)+"</p>");
+						// addresslatlngObj is already LatLng object
+						grabResponseTest(userIcd, address, radius, addresslatlngObj, map)
+
+					} else {
+						console.log('geocodeUserAddress(): there was an error with your address');	
+					};
+				});
 
 			};
 
@@ -508,35 +612,57 @@
 
 			};
 
-			function initMap(userIcd, address, radius, hospitalRecordsList) {
+			function initMapTest(userIcd, address, radius) {
 				// Google Maps Javascript API
-
-				// Google Maps for Node JS
-				// https://github.com/moshen/node-googlemaps
-				// https://github.com/googlemaps/google-maps-services-js
-				// hide API key 
-				// https://stackoverflow.com/questions/52056077/google-maps-api-using-express-and-node-js
-
-
-				startLatLngObj = new google.maps.LatLng(39.0904811, -108.5627055);
-				console.log('initMap startLatLngObj: ' + JSON.stringify(startLatLngObj));
-
-				// initialize map
-				var map = new google.maps.Map(document.getElementById("map"),{
-					zoom: 9,
-					center: startLatLngObj
-				});
 
 				// starting position
 				if (address === "") {
-					// geolocate
-					// TASK: make this work, as it doesn't connect with placehospitalmarkers() 
-					// geolocateUser(map, newDataArray, latlngObj);
+					// geolocate user if no address specified
+
+					geolocateUserTest(userIcd, address, radius, sendThrough=true);
+
 				} else {
+					// user specifies input address
+
+					// developed-specified starting point
+					startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
+
+					// initialize map
+					var map = new google.maps.Map(document.getElementById("map"),{
+						zoom: 9,
+						center: startLatLngObj
+					});
+					
+					// grab geocoded user address
+					geocodeUserAddressTest(map, userIcd, address, radius);
+				};
+
+			};
+
+			function initMap(userIcd, address, radius, hospitalRecordsList=[]) {
+				// Google Maps Javascript API
+
+				// starting position
+				if (address === "") {
+					// geolocate user if no address specified
+
+					geolocateUser(userIcd, address, radius, hospitalRecordsList, sendThrough=true);
+
+				} else {
+					// user specifies input address
+
+					// developed-specified starting point
+					startLatLngObj = new google.maps.LatLng(29.7885466,-95.429527);
+
+					// initialize map
+					var map = new google.maps.Map(document.getElementById("map"),{
+						zoom: 9,
+						center: startLatLngObj
+					});
+					
 					// grab geocoded user address
 					geocodeUserAddress(map, userIcd, address, radius, hospitalRecordsList);
 				};
-
 
 			};
 
@@ -573,6 +699,81 @@
 				return sortedHospitalRecordsList;
 			}
 
+			function grabResponseTest(userIcd, address, radius, addresslatlngObj, map) {
+				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
+				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
+				// alt way of calc distances: https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
+
+
+				// submit through ajax, and return response text
+
+				// express js + ajax		
+				// https://medium.freecodecamp.org/getting-off-the-ground-with-expressjs-89ada7ef4e59
+
+				// good example: https://gist.github.com/diorahman/1520485
+				
+				// https://grokonez.com/node-js/integrate-nodejs-express-jquery-ajax-post-get-bootstrap-view#Implement_JQuery_Ajax_requests 
+
+				console.log("grab response test");
+
+				var costordist = $("#cost-dist-dropdown").val();
+				
+				//$('#text-box').val();
+
+				// submit userIcd (global var)
+				console.log('grabResponse(userIcd, address, radius) text input: '+(userIcd.toString()));
+
+				function ajaxSuccess(response){
+					console.log('gb ajax success');
+					
+					console.log('ajax response data:'+JSON.stringify(response));
+					
+					for (var i=0; i<response.length; i++) {
+						console.log('ajax response record:'+JSON.stringify(response[i]));
+					};
+
+					var hospitalRecordsList = response;
+
+					if (response=="") {
+						alert('There is no "' + userIcd + '" in your specified area. Try increasing the area of your search.');
+					} else {
+
+						// sort hospital records according to filter for cost or distance
+						sortedHospitalRecordsList = sortRecords(hospitalRecordsList, costordist);
+
+						// pass to place hospital markers 
+						placeHospitalMarkers(map, userIcd, addresslatlngObj, radius, hospitalRecordsList)
+					};
+
+				};
+
+				function ajaxFail(error){
+					console.log('gb ajax failure');
+					console.log('ajax error: '+JSON.stringify(error));
+					//console.log("ajax fail:", error);
+
+				};
+
+				// send user parameters to backend for processing
+				var userObj = {
+								"userIcd": userIcd,
+								"geocoords": addresslatlngObj,
+								"radius": radius
+							}
+
+				var targetUrl = "http://localhost:3000/get_hospital_records_test/"+JSON.stringify(userObj);
+				$.ajax({
+					type: "GET",
+					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
+					data: JSON.stringify(userObj),	// TASK: use module for security
+					success: ajaxSuccess, 
+					error: ajaxFail
+				});	
+					
+			};
+
+
+
 			function grabResponse(userIcd, address, radius, costordist="cost") {
 				// TASK: BACKENED - filter hosp records based on city if too much for calcdistpathtime to process
 				// put calc dist path time in backend? or use different way of calc distance for each two lat lng objects? if so, must submit user address and radius along with icd, convert to lat lng object, then compare user lat lng obj with each hospital lat lng, return record if less than specified radius, add calculated distance to a new record, then put new record in new array and send as response, (no way of calculating driving distance or time?)
@@ -605,10 +806,16 @@
 
 					var hospitalRecordsList = response;
 
-					sortedHospitalRecordsList = sortRecords(hospitalRecordsList, costordist);
+					if (response=="") {
+						alert('There is no "' + userIcd + '" in your specified area. Try increasing the area of your search.');
+					} else {
 
-					// pass to initmap for further processing
-					initMap(userIcd, address, radius, sortedHospitalRecordsList);
+						// sort hospital records according to filter for cost or distance
+						sortedHospitalRecordsList = sortRecords(hospitalRecordsList, costordist);
+
+						// pass to initmap for further processing
+						initMap(userIcd, address, radius, sortedHospitalRecordsList);
+					};
 
 				};
 
@@ -642,7 +849,7 @@
 						});	
 					} else {
 						console.log('grabResponse: there was an error locating your address');	
-					}
+					}	
 
 				});
 			};
@@ -916,8 +1123,9 @@
 					d3.select("svg").remove(); 
 					
 					// initiate next step
-					grabResponse(userIcd, address, radius, costordist);
-
+					// grabResponse(userIcd, address, radius, costordist);
+					
+					initMapTest(userIcd, address, radius);
 					
 				}
 
@@ -980,8 +1188,6 @@
 			};
 
 
-
-
 			function main() {
 
 				// default parameters
@@ -989,8 +1195,10 @@
 					defaultAddress = $("#address-box").val();
 					defaultRadius = $("#radius-dropdown").val();
 
-				// call grab response upon initial page load
-				grabResponse(defaultUserIcd, defaultAddress, defaultRadius);
+				initMapTest(defaultUserIcd, defaultAddress, defaultRadius);
+				//geolocateUser();
+				//initMap(defaultUserIcd, defaultAddress, defaultRadius);
+				//grabResponse(defaultUserIcd, defaultAddress, defaultRadius);
 
 				searchFunctions();
 
