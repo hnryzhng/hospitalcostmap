@@ -148,11 +148,11 @@
 			<div id="inputContainer" class="container">
 				
 				<div class="row">
-					<input type="text" name="address" id="address-box" class="form-control" placeholder="ADDRESS"><br>
+					<input type="text" name="address" id="address-box" class="form-control" placeholder="Type CITY OR ADDRESS"><br>
 				</div>
 
 				<div class="row">
-					<input type="text" id="text-box" class="form-control" name="ajaxtext" placeholder="TYPE YOUR MEDICAL PROCEDURE">
+					<input type="text" id="text-box" class="form-control" name="ajaxtext" placeholder="Type MEDICAL PROCEDURE">
 					<div id="results-display"></div>
 				</div>
 
@@ -755,7 +755,7 @@
 								"radius": radius
 							}
 
-				var targetUrl = "http://localhost:3000/get_hospital_records_test/"+JSON.stringify(userObj);
+				var targetUrl = "/get_hospital_records_test/"+JSON.stringify(userObj);
 				$.ajax({
 					type: "GET",
 					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
