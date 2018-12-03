@@ -58,5 +58,5 @@ app.get('/get_hospital_records_test/:userObj', function(req, res){
 
 // initialize server instance
 // http://localhost:portNum
-var portNum = 3000;
+var portNum = process.env.PORT || 3000;
 app.listen(portNum, function() {console.log('Example app listening on port', portNum)});	
