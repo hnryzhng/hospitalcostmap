@@ -196,7 +196,7 @@
 				<p id="starter-text">Look at the costs of medical operations at hospitals near you. If you don't have a specific procedure in mind, type in your city or address, and choose one below.</p>
 
 				<ul id="starter-list">
-					<li id="appendectomy"><a href=#>Appendectomy</a></li>
+					<li id="cab"><a href=#>Coronary Artery Bypass (heart)</a></li>
 					<li id="knee-replacement"><a href=#>Knee Replacement (Left)</a></li>
 					<li id="hip-replacement"><a href=#>Hip Replacement (Left)</a></li>
 				</ul>
@@ -223,6 +223,9 @@
 			// var address = "75 Colonial Springs Rd Gate #3, Wheatley Heights, NY 11798";
 			// var userIcd = "Transplantation of Heart, Allogeneic, Open Approach";	
 			// var radius = 50;
+
+			// TASK: "find me" icon (next to address input field, userinputeventlisteners, setcenter for user's geocodedAddressObj)
+
 			var map;
 
 			function makeVizMarkers(sortedMarkerRecords, map) {
@@ -1089,7 +1092,7 @@
 					//console.log("starter block:", starterBlockItems.eq(1).text());
 
 					diagnosis2icd = {
-						"Appendectomy": "Acute appendicitis with generalized peritonitis",
+						"Coronary Artery Bypass (heart)": "Atherosclerosis of coronary artery bypass graft(s) without angina pectoris",
 						"Knee Replacement (Left)": "Replacement of Left Knee Joint with Autologous Tissue Substitute, Open Approach", 
 						"Hip Replacement (Left)": "Replacement of Left Hip Joint with Autologous Tissue Substitute, Open Approach"
 					};
@@ -1101,7 +1104,7 @@
 							//console.log("starter list item clicked:", starterDiagnosis);
 							starterIcd = diagnosis2icd[starterDiagnosis];
 							//console.log("starter list item icd:", starterIcd);
-							// assign value to icd input field
+							// assign value to icd inputMatch field
 							userIcdField.val(starterIcd);
 							// click submit button
 							submitButton.click();
