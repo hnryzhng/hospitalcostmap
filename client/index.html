@@ -565,8 +565,11 @@
 						
 						map.setCenter(addresslatlngObj);
 						
+						customIcon = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFA500");
+
 						new google.maps.Marker({
 							position: addresslatlngObj,
+							icon: customIcon, 
 							map: map
 						})
 
@@ -592,12 +595,14 @@
 			function geocodeUserAddress(map, userIcd, address, radius) {
 				// Google Maps Javascript API Geocoding: https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
 				geocoder = new google.maps.Geocoder();
+				customIcon = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFA500");
 				geocoder.geocode({'address':address}, function(results, status){
 					if (status === 'OK') {
 						var addresslatlngObj = results[0].geometry.location;
 						map.setCenter(addresslatlngObj);
 						new google.maps.Marker({
 							position: addresslatlngObj,
+							icon: customIcon, 
 							map: map
 						});
 
@@ -755,10 +760,11 @@
 								"radius": radius
 							}
 
+				// var rootUrl = "http://localhost:3000";	// for local connections, prepend to targetUrl
 				var targetUrl = "/get_hospital_records_test/"+JSON.stringify(userObj);
 				$.ajax({
 					type: "GET",
-					url: targetUrl,	// root+rel path or port num (8080,3000?)+rel path
+					url: targetUrl,
 					data: JSON.stringify(userObj),	// TASK: use module for security
 					success: ajaxSuccess, 
 					error: ajaxFail
