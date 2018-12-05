@@ -10,6 +10,7 @@ var fs = require('fs');
 // load special modules
 var icd2hosp = require(path.join(__dirname + '/icd2hosp.js'));
 var icd2drgObj = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt'), 'utf8'))	// read in JSON file
+var pingHeroku = require(path.join(__dirname + '/pingHeroku.js'));
 
 // initialize app object 
 var app = express();
@@ -17,6 +18,9 @@ var app = express();
 // parses body for post request processing
 app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-form-urlencoded
 app.use(bodyParser.json());	// parse application/json
+
+// Heroku app: send ping at intervals to prevent sleeping
+pingHeroku("https://hospital-cost-map.herokuapp.com/", 3000);
 
 // route: serve index.html
 app.get('/', function(req, res) {
@@ -29,9 +33,8 @@ app.get('/:relpath', function(req, res){
 	res.sendFile(path.join(__dirname + '/client/' + relpath));
 });
 
-// route
+// route: send icd2drgCode json for fast filter feature
 app.get('/static/icd2drgCode.txt', function(req, res){
-	// send icd2drgCode json for fast filter feature
 	res.json(icd2drgObj);
 });
 
