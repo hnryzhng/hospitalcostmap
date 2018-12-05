@@ -23,9 +23,9 @@ app.use(bodyParser.json());	// parse application/json
 // pingHeroku("https://hospital-cost-map.herokuapp.com/", 3000);
 
 // route: serve index.html
-//app.get('/', function(req, res) {
-//	res.sendFile(path.join(__dirname + '/client/index.html'));
-//});
+app.get('/', function(req, res) {
+	res.sendFile(path.join(__dirname + '/client/index.html'));
+});
 
 // route: serve file based on relative path from query
 app.get('/:relpath', function(req, res){
