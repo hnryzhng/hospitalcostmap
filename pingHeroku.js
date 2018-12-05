@@ -7,7 +7,7 @@ var http = require('http');
 function pingHeroku(appUrl, pingInterval) {
 	setInterval(function() {
 		http.get(appUrl);	// url: https://hospital-cost-map.herokuapp.com/
-		console.log("heroku is pinged!");	// perhaps log this with timestamp 
+		//console.log("pinged");	// perhaps log message with timestamp 
 	}, pingInterval);	// interval: 300000 = send every 5 minutes
 };
 
