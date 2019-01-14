@@ -111,6 +111,17 @@
 				background: white;
 			}
 
+			#geolocate-fail-block {
+				width: 300px;
+				height: 100px;
+				position: fixed;
+				left: 500px;
+				padding: 10px 20px 5px 20px;
+				background: white;
+				z-index: 100;
+				display: none;
+			}
+
 			#starter-text {
 				font-size: 14px;
 			}
@@ -140,6 +151,8 @@
 				z-index: 99;
 			}
 
+
+
 		</style>
 
 	</head>
@@ -151,7 +164,7 @@
 			<div id="inputContainer" class="container">
 				
 				<div class="row">
-					<input type="text" name="address" id="address-box" class="form-control" placeholder="Type CITY OR ADDRESS"><br>
+					<input type="text" name="address" id="address-box" class="form-control" placeholder="Type CITY or ADDRESS"><br>
 				</div>
 
 				<div class="row">
@@ -196,7 +209,7 @@
 			<div id="starter-block">
 				<a href=#><div id="hide-starter"></div></a>
 				<h4>Getting Started</h4>
-				<p id="starter-text">Look at the costs of medical operations at hospitals near you. If you don't have a specific procedure in mind, type in your city or address, and choose one below.</p>
+				<p id="starter-text">Look at the costs of medical operations at hospitals near you. If you don't have a specific procedure in mind, 1) type in your city or address, 2) set the distance, 3) and choose one below.</p>
 
 				<ul id="starter-list">
 					<li id="cab"><a href=#>Coronary Artery Bypass (heart)</a></li>
@@ -204,12 +217,14 @@
 					<li id="hip-replacement"><a href=#>Hip Replacement (Left)</a></li>
 				</ul>
 				<a href=# id="methodology-link">Methodology</a>
-				<p id="source-description">Data: Centers for Medicare and Medicaid Services</a>
+				<p id="source-description">Data source: Centers for Medicare and Medicaid Services</a>
 			</div>
 
 		</div>
 
 		<div id="map"></div>
+
+		<div id="geolocate-fail-block">We've failed to get your location. Please type in your city or specific address.</div>
 
 		<script>
 
@@ -355,8 +370,11 @@
 						infoWindow = d.markerObjects.infoWindow;
 
 						// extend bounds to include marker in map view 
-						bounds.extend(marker.position);
-						map.fitBounds(bounds);
+						// bounds.extend(marker.position);
+						// map.fitBounds(bounds);
+
+						// move center to selected marker
+						map.panTo(marker.position);
 
 						// set marker animation highlight
 						marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -562,6 +580,11 @@
 
 			function geolocateUser(map, userIcd="", address="", radius="", sendThrough=false) {
 
+
+				function hideGeolocateFail() {
+					$("#geolocate-fail-block").hide();
+				};
+
 				if (navigator.geolocation) {
 					navigator.geolocation.getCurrentPosition(function(position) {
 						addresslatlngObj = {
@@ -586,7 +609,11 @@
 
 					}, function(){
 						console.log("geolocation error: get position has failed");
-						alert("We've failed to get your location. Please type in your city or specific address.");
+						//alert("We've failed to get your location. Please type in your city or specific address.");
+
+						//$("#geolocate-fail-block").slideDown("slow");	// show geolocate fail block
+						
+						//setTimeout(hideGeolocateFail, 8000);	// hide after specified ms
 					});
 
 				} else {
