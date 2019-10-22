@@ -1,4 +1,4 @@
-# Hospital Treatment Costs Map #
+# Hospital Surgery Costs Map #
 
 This code is for the web app "How Much Does Surgery Cost Near Me?"
 
