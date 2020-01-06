@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-
 app.use(bodyParser.json());	// parse application/json
 
 // Heroku app: send ping at intervals to prevent sleeping
-pingHeroku("https://hospital-cost-map.herokuapp.com/", 900000);
+// pingHeroku("https://hospital-cost-map.herokuapp.com/", 900000);
 
 // route: serve index.html
 app.get('/', function(req, res) {
