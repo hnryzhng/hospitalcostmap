@@ -10,7 +10,7 @@ var fs = require('fs');
 // load special modules
 var icd2hosp = require(path.join(__dirname + '/icd2hosp.js'));
 var icd2drgObj = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt'), 'utf8'))	// read in JSON file
-var pingHeroku = require(path.join(__dirname + '/pingHeroku.js'));
+var pingHeroku = require(path.join(__dirname + '/ping-heroku.js'));
 
 // initialize app object 
 var app = express();
@@ -19,8 +19,9 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));	// parse application/x-www-form-urlencoded
 app.use(bodyParser.json());	// parse application/json
 
-// Heroku app: send ping at intervals to prevent sleeping
-// pingHeroku("https://hospital-cost-map.herokuapp.com/", 900000);
+// ping Heroku 
+// send ping at intervals to prevent sleeping
+pingHeroku("https://hospital-cost-map.herokuapp.com/", 1799000);	// every 1799 seconds, or almost 30 min (1800 sec)
 
 // route: serve index.html
 app.get('/', function(req, res) {
