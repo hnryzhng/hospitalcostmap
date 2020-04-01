@@ -10,7 +10,7 @@ var fs = require('fs');
 // load special modules
 var icd2hosp = require(path.join(__dirname + '/icd2hosp.js'));
 var icd2drgObj = JSON.parse(fs.readFileSync(path.join(__dirname + '/static/icd2drgCode.txt'), 'utf8'))	// read in JSON file
-var pingHeroku = require(path.join(__dirname + '/ping-heroku.js'));
+// var pingHeroku = require(path.join(__dirname + '/ping-heroku.js'));
 
 // initialize app object 
 var app = express();
