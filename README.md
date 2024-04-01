@@ -2,7 +2,7 @@
 
 This code is for the web app "How Much Does Surgery Cost Near Me?"
 
-[Click here](https://hospital-cost-map.herokuapp.com) to visit.
+[Click here](https://hospital-cost-map.onrender.com) to visit.
 
 Since high opaque healthcare costs continue to be a problem for many Americans, I created an interactive map using open federal government data so users can get an idea of the costs of particular surgeries or other treatments corresponding to specific diagnoses. 
 
